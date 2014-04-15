@@ -15,9 +15,26 @@
  * Public License for more details
 */
 
+#include <yarp/os/all.h>
+#include <yarp/dev/all.h>
+#include <yarp/os/RFModule.h>
+#include <yarp/os/Network.h>
 
+YARP_DECLARE_DEVICES(icubmod)
 
+using namespace std;
+using namespace yarp::os;
 
+class reachingRF: public RFModule
+{
+protected:
+
+    
+public:
+    reachingRF() {};
+    
+    bool updateModule() { return true; }
+};
 
 int main(int argc, char *argv[])
 {
@@ -30,17 +47,14 @@ int main(int argc, char *argv[])
 
     YARP_REGISTER_DEVICES(icubmod)
     
-    myReport rep;
-
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setMonitor(&rep);
-    rf.setDefaultContext("demoGrasp_IIT_ISR");
-    rf.setDefaultConfigFile("config.ini");
+    rf.setDefaultContext("reachModule");
+    rf.setDefaultConfigFile("reachConfig.ini");
     rf.configure(argc,argv);
 
-    managerModule mod;
-    mod.setName("/demoGraspManager_IIT_ISR");
-
+    reachingRF mod;
+    
+    cout << "Configuring and starting reaching module. \n";
     return mod.runModule(rf);
 }

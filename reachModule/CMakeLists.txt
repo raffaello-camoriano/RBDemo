@@ -10,6 +10,7 @@ PROJECT(${PROJECTNAME})
 
 SET(folder_source main.cpp)
 
+find_package(YARP)
 find_package(ICUB)
 
 include_directories(${ICUB_INCLUDE_DIRS} ${YARP_INCLUDE_DIRS})
