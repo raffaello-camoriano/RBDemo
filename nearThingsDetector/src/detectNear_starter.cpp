@@ -12,12 +12,12 @@ public:
 
     bool configure(ResourceFinder &rf)
     {
-        return detectNear.open();
+        return detectNear.open(rf);
 	}
 
     double getPeriod()
     {
-        return 0.01;
+        return 0.2;
     }
     
     bool updateModule()

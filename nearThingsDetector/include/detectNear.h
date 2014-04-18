@@ -1,30 +1,44 @@
-
-#ifndef __BLOB3DINFO_H__
-#define __BLOB3DINFO_H__
+#ifndef __DETECTNEAR_H__
+#define __DETECTNEAR_H__
 
 
 #include <yarp/os/RFModule.h>
 #include <yarp/os/BufferedPort.h>
 #include <yarp/sig/Image.h>
 
+#include <cv.h>
+
 class DetectNear
 {
-	yarp::os::Port									rpcPort;						// rpc port (receive commands via rpc), returns bounding box of selected blob
-	yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgbFloat> > worldInPort;// input Port with info of 3D world
-	yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > disparityPort; 
-	yarp::os::BufferedPort<yarp::os::Bottle>		blobsInPort;					// input Port with blobs bounding boxes
-    yarp::os::BufferedPort<yarp::os::Bottle>		targetPort;				// Send coordinates of closest point.
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> > im3DOutPort;	// output image Port with info drawn over  
+	yarp::os::Port									rpcPort;							// rpc port (receive commands via rpc), returns bounding box of selected blob
 
+	yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> > imTestOutPort;		// output image Port with info drawn over  
+
+	yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgbFloat> > worldInPort;	// input Port with info of 3D world
+	yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > disparityPort;	// REceives disparity greyscale image
+	yarp::os::BufferedPort<yarp::os::Bottle>		blobsInPort;						// input Port with blobs bounding boxes
+    yarp::os::BufferedPort<yarp::os::Bottle>		targetPort;							// Send coordinates of closest point.
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > im3DOutPort;		// output image Port with info drawn over  
+
+	//yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgbFloat> >	testImPort;
+
+	int thresh;
+	int cannyThresh;
+	int minBlobSize;
+
+	float range;
+	float minDist;
+	int closestBlobI;
+	bool closestReachable;	
 
 public:
 
-    DetectNear()
+    DetectNear() 
     {
         // constructor
     }
 
-    bool open();
+    bool open(yarp::os::ResourceFinder &rf);
 	bool close();
 	void loop(); 
 	bool interrupt();

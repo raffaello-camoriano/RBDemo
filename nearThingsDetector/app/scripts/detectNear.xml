@@ -21,10 +21,9 @@
      <!-- <data> can have multiple <input> or <output> tags. -->
      <data>
         <!-- input data if available -->
-     <data>
         <input>
             <type>ImageOfPixelMono</type>
-            <port carrier="udp">/detectNear/disparity:i</port>
+            <port carrier="udp">/detectNear/disp:i</port>
             <required>no</required>
             <priority>no</priority>
             <description>StereoDisparity disparity image</description>
@@ -38,18 +37,24 @@
             <description>stereo disparity world image</description>
         </input>
 
-        <input>
+        <!-- <input>
             <type>Bottle</type>
             <port carrier="tcp">/detectNear/blobs:i</port>
             <required>no</required>
             <priority>no</priority>
             <description> Receives blobs coordinates</description>
-        </input>
-
+        </input>   -->
+        
         <!-- output data if available -->
         <output>
-            <type>ImageOfPixelRgb</type>
+            <type>ImageOfPixelBgr</type>
             <port carrier="udp">/detectNear/im3D:o</port>
+            <description> Send out the binary image of selected blob</description>
+        </output>
+        
+        <output>
+            <type>ImageOfPixelMono</type>
+            <port carrier="udp">/detectNear/imTest:o</port>
             <description> Send out the binary image of selected blob</description>
         </output>
 
