@@ -17,7 +17,7 @@ class DetectNear
 	yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgbFloat> > worldInPort;	// input Port with info of 3D world
 	yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > disparityPort;	// REceives disparity greyscale image
 	yarp::os::BufferedPort<yarp::os::Bottle>		blobsInPort;						// input Port with blobs bounding boxes
-    yarp::os::BufferedPort<yarp::os::Bottle>		targetPort;							// Send coordinates of closest point.
+    yarp::os::BufferedPort<yarp::os::Bottle>		targetOutPort;							// Send coordinates of closest point.
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> > im3DOutPort;		// output image Port with info drawn over  
 
 	//yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgbFloat> >	testImPort;

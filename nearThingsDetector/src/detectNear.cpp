@@ -21,6 +21,9 @@ void DetectNear::loop()
 	//  - Closer blob coords
 
 
+	// Accept blob coordinates as an input
+	// in that case, edge and contour detection has to be done nonetheless.
+
 	// XXX change method: 
 	// Start with the disparity image
 	// Get blobs from disparity
@@ -42,15 +45,43 @@ void DetectNear::loop()
 	ImageOf<PixelBgr> *disparity = disparityPort.read();       
     if(!disparity)
         return;
-	Mat disp3((IplImage*) disparity->getIplImage());			// Transform world data into Mat
+	Mat disp3((IplImage*) disparity->getIplImage());			// Transform disparity data into Mat
 	Mat disp;
 	cvtColor(disp3, disp, CV_BGR2GRAY);							// Create greyscale image for further analysis
+
+	// Read blobs
+	Bottle *blobBoxes = blobsInPort.read();						// read the blobs bounding boxes
+	// check we actually got blob information
+	bool blobsGiven = false;
+	vector<Rect> blobRects;
+	if(blobBoxes->size() > 0){
+		cout << " Blobs received"<< endl;
+		blobsGiven = true;
+		for (int b=0; b<blobBoxes->size(); b++){				// Read blob bounding boxes from bottles
+			Point tl,br;
+			Bottle *item = blobBoxes->get(b).asList();
+			tl.x=(int)item->get(0).asInt();
+			tl.y=(int)item->get(1).asInt();
+			br.x=(int)item->get(2).asInt();
+			br.y=(int)item->get(3).asInt();
+			Rect blob(tl,br);
+			blobRects.push_back(blob);
+		}
+
+	}else{
+		Rect blob(0,0,disparity->width(),disparity->height());	// Select all image as blob	
+		blobRects.push_back(blob);
+	}
 
 	// prepare an output image
 	cout << "Preparing output image... "<< endl;
 	ImageOf<PixelBgr> &imageOut = im3DOutPort.prepare();		// prepare an output image
 	imageOut = *disparity;	
 	Mat imOut((IplImage*)imageOut.getIplImage(),false);
+
+	//Prepare output target port    
+	Bottle &target = targetOutPort.prepare();
+    target.clear();
 
 	// prepare a test output image
 	cout << "Preparing test output image... "<< endl;
@@ -76,19 +107,22 @@ void DetectNear::loop()
 	//dilate(disp,disp, Mat());
 	
 
-	//Find Contours
-	cout << "Finiding contours "<< endl;
+	//Find Contours	
 	Mat edges;	
-	vector<vector<Point > > contours, contours_aux;
+	vector<vector<Point > > contours;
 	vector<Vec4i> hierarchy;
 	Canny( disp, edges, cannyThresh, cannyThresh*3, 3 );			// Detect edges using canny	
-	findContours( edges, contours_aux, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
-
-	cout << "Finding large blobs... "<< endl;
-	for( int i = 0; i < contours_aux.size(); i++ ){
-		double a=contourArea(contours_aux[i]);						// Find the area of contour
-		if(a>minBlobSize){											// Keep only big contours
-			contours.push_back(contours_aux[i]);					
+	for( int i = 0; i < blobRects.size(); i++ ){
+		rectangle(imOut,blobRects[i],Scalar(255,0,0));
+		cout << "Finiding contours "<< endl;
+		vector<vector<Point > > contours_aux;
+		findContours( edges(blobRects[i]), contours_aux, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+		cout << "Finding large blobs... "<< endl;
+		for( int i = 0; i < contours_aux.size(); i++ ){
+			double a=contourArea(contours_aux[i]);						// Find the area of contour
+			if(a>minBlobSize){											// Keep only big contours
+				contours.push_back(contours_aux[i]);					
+			}
 		}
 	}
 	printf(" Found %d large contours\n", contours.size() );
@@ -130,7 +164,7 @@ void DetectNear::loop()
 	minDist = 1000;
 	for( int i = 0; i < contours.size(); i++ ){
 		Rect boundRect = boundingRect(contours[i]);// get bounding box
-		rectangle(imOut,boundRect, Scalar(255, 0 ,0));
+		//rectangle(imOut,boundRect, Scalar(255, 0 ,0));
 		//cout << "Blob" << i << "in rectangle" << boundRect.br() << ", "<< boundRect.tl() << "within image" << dist3D.size << endl;
 		Scalar avgDist = mean(dist3D(boundRect),mask(boundRect));
 		cout << "Blob " << i << " is at avg distance " << avgDist << endl << endl;
@@ -160,17 +194,15 @@ void DetectNear::loop()
 		cout << "Getting 3D coords of center " << endl;
 		PixelRgbFloat centerCoords = world->operator()(center.x,center.y);
 		cout << "coords of the center of closest blob are : " << centerCoords.b<< ", "<< centerCoords.g << ", "<< centerCoords.b << endl;
-		Bottle target;
+		//Bottle target;
 		target.addDouble(centerCoords.r);
 		target.addDouble(centerCoords.g);
-		target.addDouble(centerCoords.n);
+		target.addDouble(centerCoords.b);
 	}
-
-	/// XXX Open an dprepare the target port to receive coords!!
-
 
 	// write info on output ports
 	im3DOutPort.write();
+	targetOutPort.write();
 	imTestOutPort.write();
 }
 
@@ -197,7 +229,7 @@ bool DetectNear::open(ResourceFinder &rf)
 	ret = ret && worldInPort.open("/detectNear/world:i");			// Receive 3D coordinates of all points in the image
 	ret = ret && blobsInPort.open("/detectNear/blobs:i");			// Receive info about the blobs in the image (optional)
 
-	ret = ret && targetPort.open("/detectNear/target:o");			// 3D Coordinates of closest point.
+	ret = ret && targetOutPort.open("/detectNear/target:o");			// 3D Coordinates of closest point.
 	ret = ret && im3DOutPort.open("/detectNear/im3D:o");			// port to send out the 3D image with info drawn over  
 	   
     return ret;
@@ -210,8 +242,8 @@ bool DetectNear::close()
 	//testImPort.close();
 
     
-	targetPort.setStrict();
-	targetPort.write();
+	targetOutPort.setStrict();
+	targetOutPort.write();
 
 	im3DOutPort.setStrict();
 	im3DOutPort.write();
@@ -220,7 +252,7 @@ bool DetectNear::close()
 	blobsInPort.close();
 	disparityPort.close();
 	worldInPort.close();
-    targetPort.close();
+    targetOutPort.close();
     im3DOutPort.close();
 
 	printf("Closed");
@@ -234,7 +266,7 @@ bool DetectNear::interrupt()
 	blobsInPort.interrupt();
 	worldInPort.interrupt();
 	disparityPort.interrupt();
-	targetPort.interrupt();
+	targetOutPort.interrupt();
 	im3DOutPort.interrupt();
 
     return true;
