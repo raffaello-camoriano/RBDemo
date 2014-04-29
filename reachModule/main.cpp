@@ -1,6 +1,6 @@
 /* 
  * Copyright: (C) 2014 iCub Facility - Istituto Italiano di Tecnologia
- * Author: Matej Hoffmann
+ * Author: printf("run: setting new target from rpc: %f %f %f \n",targetPos[0],targetPos[1],targetPos[2]); Hoffmann
  * email:  matej.hoffmann@iit.it
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
@@ -40,6 +40,8 @@
 #define STATE_CHECKMOTIONDONE   2
 #define STATE_RELEASE           3
 #define STATE_WAIT              4
+#define STATE_WAIT_FOR_GRASP    5
+#define STATE_GO_HOME           6
 
 YARP_DECLARE_DEVICES(icubmod)
 
@@ -94,13 +96,21 @@ protected:
     bool leftArmImpVelMode;
     bool rightArmImpVelMode;
     
-    bool targetFromRPCset;
-    bool targetFromPortSet;
+    bool newTargetFromRPC;
+    bool newTargetFromPort;
 
     double trajTime;
     double reachTol;
-    double idleTimer, idleTmo;
-    double latchTimer;
+    double reachTimer, reachTmo;
+    double graspTimer, graspTmo;
+    
+    struct {
+    double minX, maxX;
+    double minY, maxY;
+    double minZ, maxZ;
+    } reachableSpace;
+  
+    //double latchTimer;
     double hystThres;
     
     Vector openHandPoss;
@@ -273,63 +283,25 @@ protected:
     {
         if (useLeftArm && useRightArm)
         {
-            if (state==STATE_REACH)
-            {    
-                // handle the hysteresis thresholds
-                if ((armSel==LEFTARM) && (targetPos[1]>hystThres) ||
-                    (armSel==RIGHTARM) && (targetPos[1]<-hystThres))
-                {
-                    fprintf(stdout,"*** Change arm event triggered\n");
-                    state=STATE_CHECKMOTIONDONE;
-                    latchTimer=Time::now();
-                }
-            }
-            else if (state==STATE_CHECKMOTIONDONE)
-            {
-                bool done;
-                cartArm->checkMotionDone(&done);
-                if (!done)
-                {
-                    if (Time::now()-latchTimer>3.0*trajTime)
-                    {
-                        fprintf(stdout,"--- Timeout elapsed => FORCE STOP and CHANGE ARM\n");
-                        done=true;
-                    }
-                }
-
-                if (done)
-                {
-                    stopControl();
-                    steerArmToHome();
-
-                    // swap interfaces
-                    if (armSel==RIGHTARM)
-                    {
-                        armSel=LEFTARM;
-
-                        drvLeftArm->view(encArm);
-                        drvLeftArm->view(posArm);
-                        drvCartLeftArm->view(cartArm);
-                        armReachOffs=&leftArmReachOffs;
-                        armHandOrien=&leftArmHandOrien;
-                    }
-                    else
-                    {
-                        armSel=RIGHTARM;
-
-                        drvRightArm->view(encArm);
-                        drvRightArm->view(posArm);
-                        drvCartRightArm->view(cartArm);
-                        armReachOffs=&rightArmReachOffs;
-                        armHandOrien=&rightArmHandOrien;
-                    }
-
-                    fprintf(stdout,"*** Using %s\n",armSel==LEFTARM?"left_arm":"right_arm");
-                    stopArmJoints();
-                    state=STATE_REACH;
-                }
-            }
-        }
+           if(targetPos[1]>0.0){
+               armSel=RIGHTARM; 
+               printf("Target in right space - selecting right arm.\n");
+               drvRightArm->view(encArm);
+               drvRightArm->view(posArm);
+               drvCartRightArm->view(cartArm);
+               armReachOffs=&rightArmReachOffs;
+               armHandOrien=&rightArmHandOrien;
+           }
+           else{
+               armSel=LEFTARM; 
+               printf("Target in left space - selecting left arm.\n");
+               drvLeftArm->view(encArm);
+               drvLeftArm->view(posArm);
+               drvCartLeftArm->view(cartArm);
+               armReachOffs=&leftArmReachOffs;
+               armHandOrien=&leftArmHandOrien;
+           }
+         }
     }
     
     void doReach()
@@ -559,6 +531,18 @@ protected:
         return Rz;
     }
     
+    bool reachableTarget(const Vector target_pos){
+        if( (target_pos[0] < reachableSpace.minX) || (target_pos[0] > reachableSpace.maxX) ||
+            (target_pos[1] < reachableSpace.minY) || (target_pos[1] > reachableSpace.maxY) ||
+            (target_pos[2] < reachableSpace.minZ) || (target_pos[2] > reachableSpace.maxZ)){
+            printf("Warning: target %f %f %f is outside of reachable area.\n",target_pos[0],target_pos[1],target_pos[2]);
+            return false;          
+        }
+        else{
+                return true;
+        }
+    }
+    
     void close()
     {
         delete drvTorso;
@@ -592,8 +576,12 @@ public:
         reachTol=0.01;
         setRate(DEFAULT_THR_PER); // 20 ms ~ 50 Hz
         hystThres = 0.05;
-        idleTmo = 5.0;
-                   
+        reachTmo = 5.0;
+        graspTmo = 5.0;
+        reachableSpace.minX=-0.4; reachableSpace.maxX=-0.2;
+        reachableSpace.minY=-0.3; reachableSpace.maxY=0.3;
+        reachableSpace.minZ=-0.1; reachableSpace.maxZ=0.1;
+                
         // torso part
         Vector torsoSwitch(3);   torsoSwitch.zero();
         Matrix torsoLimits(3,4); torsoLimits.zero();
@@ -681,7 +669,7 @@ public:
             }
         }
 
-        // open cartesiancontrollerclient and gazecontrollerclient drivers
+        // open cartesiancontrollerclient drivers
         Property optCartLeftArm("(device cartesiancontrollerclient)");
         Property optCartRightArm("(device cartesiancontrollerclient)");
        
@@ -691,6 +679,7 @@ public:
         optCartRightArm.put("remote",(fwslash+robot+"/cartesianController/right_arm").c_str());
         optCartRightArm.put("local",(name+"/right_arm/cartesian").c_str());
 
+      
         if (useLeftArm)
         {
             drvCartLeftArm=new PolyDriver;
@@ -747,6 +736,11 @@ public:
             }
         }
 
+        // open views
+      
+        drvTorso->view(encTorso);
+        drvTorso->view(posTorso);
+              
         if (useLeftArm)
         {
             drvLeftArm->view(encArm);
@@ -791,10 +785,7 @@ public:
         steerTorsoToHome();
         steerArmToHome(LEFTARM);
         steerArmToHome(RIGHTARM);
-
-        idleTimer=Time::now();
-        Random::seed((int)idleTimer);
-
+     
         wentHome=false;
         state=STATE_IDLE;
 
@@ -806,53 +797,90 @@ public:
         {
             targetPos[i]=target_pos[i];
         }
-        targetFromRPCset = true;
+        //printf("reachingThread::setTargetFromRPC: Setting targetPos from RPC to %f %f %f.\n",targetPos[0],targetPos[1],targetPos[2]);
+        newTargetFromRPC = true;
         return true;
     }
     
+    bool setHomeFromRPC(){
+    // steer the robot to the initial configuration
+        state = STATE_GO_HOME;
+        return true;
+    }
+   
     void run()
     {
         bool newTarget = false;
        
         getSensorData();
         
-        targetFromPortSet =  checkPosFromPortInput(targetPosFromPort);
-        if(targetFromPortSet || targetFromRPCset){
+        newTargetFromPort =  checkPosFromPortInput(targetPosFromPort);
+        if(newTargetFromPort || newTargetFromRPC){ //target from RPC is set asynchronously
             newTarget = true;
-            if (targetFromRPCset){ //RPC has priority
-                targetPos = targetPosFromRPC;
+            if (newTargetFromRPC){ //RPC has priority
+                printf("run: setting new target from rpc: %f %f %f \n",targetPos[0],targetPos[1],targetPos[2]);
+                newTargetFromRPC = false;
             }
             else{
-                targetPos = targetPosFromPort;    
+                targetPos = targetPosFromPort;
+                printf("run: setting new target from port: %f %f %f \n",targetPos[0],targetPos[1],targetPos[2]);
+                newTargetFromPort = false;
             }
         }
-         
-        if (newTarget)
-        {    
-            idleTimer=Time::now();
-
-            if (state==STATE_IDLE)
-            {
-               fprintf(stdout,"--- Got target => REACHING\n");
-                
-                wentHome=false;
-                state=STATE_REACH;
+        
+        if (state==STATE_IDLE){
+            if (newTarget){
+                if (reachableTarget(targetPos)){
+                    printf("--- Got new target => REACHING\n"); 
+                    state = STATE_REACH;
+                    reachTimer = Time::now();
+                }
+                else{
+                    printf("Target (%f %f %f) is outside of reachable space - x:<%f %f>, y:<%f %f>, z:<%f %f>\n",
+                           targetPos[0],targetPos[1],targetPos[2],reachableSpace.minX,reachableSpace.maxX,reachableSpace.minY,
+                           reachableSpace.maxY,reachableSpace.minZ,reachableSpace.maxZ);
+                }
             }
+            //else - remain idle
         }
-        else if (((state==STATE_IDLE) || (state==STATE_REACH)) && 
-                 ((Time::now()-idleTimer)>idleTmo) && !wentHome)
-        {    
-            fprintf(stdout,"--- Target timeout => IDLE\n");
+        else if(state==STATE_REACH){
+                selectArm();
+                doReach();
+                state = STATE_CHECKMOTIONDONE;
+        }
+          
+        else if(state == STATE_CHECKMOTIONDONE)
+        {
+           bool done;
+           cartArm->checkMotionDone(&done);
+                if (!done)
+                {
+                    if( ((Time::now()-reachTimer)>reachTmo)){
+                           fprintf(stdout,"--- Reach timeout => go home\n");
+                           state = STATE_GO_HOME;
+                    }
+                }
+                else{ //done
+                    fprintf(stdout,"--- Reach done => wait for grasp\n");
+                    state = STATE_WAIT_FOR_GRASP;
+                    graspTimer = Time::now();
+                    //TODO send signal to Raffa
+                }
+        }
+        else if (state == STATE_WAIT_FOR_GRASP){
+             if( ((Time::now()-graspTimer)>graspTmo)){
+                           fprintf(stdout,"--- Grasp timeout => go home\n");
+                           state = STATE_GO_HOME;
+             }
+        }   
+        else if(state==STATE_GO_HOME){
             stopControl();
             steerTorsoToHome();
             steerArmToHome(LEFTARM);
             steerArmToHome(RIGHTARM);
-            wentHome=true;
+            fprintf(stdout,"--- I'm home => go idle\n");
             state=STATE_IDLE;
         }
-         
-        selectArm();
-        doReach();
     }
 
     void threadRelease()
@@ -948,13 +976,15 @@ public:
             {
                 //-----------------
                 case VOCAB2('g','o'):
+                //case VOCAB2('G','O'):
                 {
                     
-                    int res=Vocab::encode("new target");
+                    //int res=Vocab::encode("new target");
                     if (command.size()==4){ //"go x y z"
                         target_pos(0)=command.get(1).asDouble();
                         target_pos(1)=command.get(2).asDouble();
                         target_pos(2)=command.get(3).asDouble();
+                        //printf("reachingModule():respond: Will set target to %f %f %f.\n",target_pos[0],target_pos[1],target_pos[2]);
                         if (thr -> setTargetFromRPC(target_pos))
                         {
                             reply.addVocab(ack);
@@ -971,10 +1001,21 @@ public:
                         reply.addVocab(nack);
                     }
                     
-                    reply.addVocab(res);
+                   // reply.addVocab(res);
                     return true;
                 }
-               
+                case VOCAB4('h','o','m','e'):
+                //case VOCAB4('H','O','M','E'):
+                     //int res2=Vocab::encode("home");
+                     if (thr -> setHomeFromRPC())
+                     {
+                            reply.addVocab(ack);
+                            reply.addVocab(VOCAB4('h','o','m','e'));
+                     }
+                     else{
+                        reply.addVocab(nack);
+                     }
+                     return true;
                 //-----------------
                 default:
                     return RFModule::respond(command,reply);
@@ -1002,7 +1043,6 @@ public:
 };
 
 
-
 int main(int argc, char *argv[])
 {
     Network yarp;
@@ -1017,10 +1057,11 @@ int main(int argc, char *argv[])
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultContext("reachModule");
-    rf.setDefaultConfigFile("reachConfig.ini");
+    //rf.setDefaultConfigFile("reachConfig.ini");
     rf.configure(argc,argv);
 
     reachingModule mod;
+    mod.setName("/reachModule");
     
     cout << "Configuring and starting reaching module. \n";
     return mod.runModule(rf);
