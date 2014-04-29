@@ -1,0 +1,37 @@
+language: cpp
+
+compiler:
+  - gcc
+  - clang
+
+env:
+  - RBDEMO_TRAVIS_BUILD_TYPE=Debug
+  - RBDEMO_TRAVIS_BUILD_TYPE=Release
+
+branches:
+  - origin
+
+install:
+  - sudo sh -c 'echo "deb http://www.icub.org/ubuntu precise contrib/science" > /etc/apt/sources.list.d/icub.list'
+  - sudo apt-get update
+  - sudo apt-get --force-yes install icub
+
+before_script:
+# Prepare RBDemo build
+  - git clone https://github.com/Ommac/RBDemo.git
+  - mv RBDemo/ tmp_RBDemo
+  - cd tmp_RBDemo/graspingModule/
+  - mkdir build
+  - cd build/
+  - cmake ../
+
+# How to set the cmake configuration options?
+# ??? cmake -DCMAKE_INSTALL_PREFIX="./local_install" -DCMAKE_BUILD_TYPE=${CODYCO_TRAVIS_BUILD_TYPE} ..
+
+script:
+  - make
+#  - ctest -V	???
+  
+notifications:
+  email:
+    - raffaello.camoriano@iit.it

@@ -1,0 +1,8 @@
+yarpserver
+
+iCub_SIM (verify iCub_parts_activation.ini)	
+
+skinManager
+
+yarp connect /skinManager/skin_events:o /touchDetector/contacts:i
+yarp connect /touchDetector/contact_pos:o /contact_detected
