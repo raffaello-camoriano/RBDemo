@@ -1,7 +1,7 @@
 /* 
  * Copyright (C) 2010 RobotCub Consortium, European Commission FP6 Project IST-004370
- * Author: Ugo Pattacini
- * email:  ugo.pattacini@iit.it
+ * Authors: Ugo Pattacini, Raffaello Camoriano
+ * email:  ugo.pattacini@iit.it, raffaello.camoriano@iit.it
  * website: www.robotcub.org
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
@@ -17,7 +17,7 @@
 */
 
 /** 
-\defgroup ationPrimitivesExample actionPrimitivesExample
+\defgroup graspingModule
  
 @ingroup icub_module  
  
@@ -26,48 +26,27 @@ library.
 
 Copyright (C) 2010 RobotCub Consortium
  
-Author: Ugo Pattacini 
+Authors: Ugo Pattacini and Raffaello Camoriano
 
 CopyPolicy: Released under the terms of the GNU GPL v2.0. 
 
 \section intro_sec Description 
 An example module that makes use of \ref ActionPrimitives 
-library in order to execute a sequence of simple actions: 
-reaches for an object, tries to grasp it, then lifts it and 
-finally releases it. 
+library in order to perform simple grasping with either of the hands.
  
-1) A bottle containing the 3-d position of the object to grasp 
-is received (let be x1).
+1) Both hands aro opened at startup
+
+2) A bottle containing the code of the hand to be closed
+is received
  
-2) To this 3-d point a systematic offset is added in order to
-compensate for the uncalibrated kinematics of the arm (let be
-x2=x1+systematic_offset). 
+3) The corresponding hand is closed by calling the close_hand sequence
  
-3) The robot reaches for a position located on top of the object 
-with the specified orientation (let be reach(x2+grasp_disp,o)). 
- 
-4) The robot grasps the object (let be reach(x2,o)). 
- 
-5) The hand is closed. 
- 
-6) The robot lifts the object to a specified location (let be 
-reach(x2+lift_displacement,o)). 
- 
-7) The robot releases the grasped object. 
- 
-8) The robot steers the arm to home position. 
- 
-\note A video on iCub grasping objects can be seen <a 
-    href="http://wiki.icub.org/misc/icubvideos/icub_grasps_sponges.wmv">here</a>.
-  
 \section lib_sec Libraries 
 - YARP libraries. 
 - \ref ActionPrimitives library.  
+- \ref SkinDyn library.  
 
 \section parameters_sec Parameters
---name \e name
-- specify the module name, which is \e ActionPrimitivesMod by
-  default.
  
 \section portsa_sec Ports Accessed
 The robot interface is assumed to be operative.
@@ -76,13 +55,16 @@ The robot interface is assumed to be operative.
 Aside from the internal ports created by \ref ActionPrimitives 
 library, we also have: 
  
-- \e /<modName>/in receives a bottle containing the 3-d position 
-  of the object to grasp.
+- \e /<modName>/in receives a bottle containing the code associated to the hand to close
  
 - \e /<modName>/rpc remote procedure call. 
     Recognized remote commands:
-    -'quit' quit the module
- 
+	-'open_left_hand'
+	-'open_right_hand'
+	-'close_left_hand'
+	-'close_right_hand'
+
+
 \section in_files_sec Input Data Files
 None.
 
@@ -181,13 +163,7 @@ protected:
     AFFACTIONPRIMITIVESLAYER *actionL;	// Action list associated to the left hand
     AFFACTIONPRIMITIVESLAYER *actionR;	// Action list associated to the right hand
     BufferedPort<Bottle>      inPort;
-    Port                      rpcPort;
-
-    // Vector graspOrien;
-    // Vector graspDisp;
-    // Vector dOffs;
-    // Vector dLift;
-    // Vector home_x;
+    //Port                      rpcPort;
 
     bool firstRun;
 
@@ -195,38 +171,86 @@ public:
     /************************************************************************/
     ExampleModule()
     {
-        // graspOrien.resize(4);
-        //graspDisp.resize(3);
-        //dOffs.resize(3);
-        //dLift.resize(3);
-        //home_x.resize(3);
-
-        // default values for arm-dependent quantities
-        // graspOrien[0]=-0.171542;
-        // graspOrien[1]= 0.124396;
-        // graspOrien[2]=-0.977292;
-        // graspOrien[3]= 3.058211;
-
-        // graspDisp[0]=0.0;
-        // graspDisp[1]=0.0;
-        // graspDisp[2]=0.05;
-
-        // dOffs[0]=-0.03;
-        // dOffs[1]=-0.07;
-        // dOffs[2]=-0.02;
-
-        // dLift[0]=0.0;
-        // dLift[1]=0.0;
-        // dLift[2]=0.15;
-        
-        // home_x[0]=-0.29;
-        // home_x[1]=-0.21;
-        // home_x[2]= 0.11;
-
         actionL=NULL;
         actionR=NULL;
         firstRun=true;
     }
+
+	bool respond(const Bottle &  	command,
+				 Bottle &  	reply)
+	{
+		char * receivedCmd = new char [command.get(0).asString().length()+1];
+		strcpy (receivedCmd, command.get(0).asString().c_str());
+
+		// Stop current motion and clear actions queue
+		actionL->stopControl();
+		actionR->stopControl();
+		actionL->clearActionsQueue();
+		actionR->clearActionsQueue();
+
+		bool f;
+
+		reply.clear();
+
+		if (strcmp(receivedCmd , "open_left_hand") == 0)
+		{
+
+			actionL->pushAction("open_hand");
+			actionL->checkActionsDone(f,true);
+			actionL->areFingersInPosition(f);	// Check for obstructing (grasped) objects
+			
+            if (!f)
+				reply.add("Something is impeding left hand!");
+                //cout<<"Something is impeding left hand!"<<endl;
+            else
+				reply.add("Left hand fully opened");
+                //cout<<"Left hand fully opened"<<endl;
+		}
+
+		else if (strcmp(receivedCmd , "open_right_hand") == 0)
+		{
+			actionR->pushAction("open_hand");
+			actionR->checkActionsDone(f,true);
+			actionR->areFingersInPosition(f);	// Check for obstructing (grasped) objects
+			
+            if (!f)
+				reply.add("Something is impeding right hand!");
+                //cout<<"Something is impeding right hand!"<<endl;
+            else
+ 				reply.add("Right hand fully opened");
+				//cout<<"Right hand fully opened"<<endl;
+		}
+
+		else if (strcmp(receivedCmd , "close_right_hand") == 0)
+		{
+			actionR->pushAction("close_hand");
+			actionR->checkActionsDone(f,true);
+			actionR->areFingersInPosition(f);	// Check for obstructing (grasped) objects
+			
+            if (!f)
+ 				reply.add("Right hand has grasped something while closing!");
+                //cout<<"Right hand has grasped something while closing!"<<endl;
+            else
+ 				reply.add("Right hand fully closed");
+                //cout<<"Right hand fully closed"<<endl;
+		}
+
+		else if (strcmp(receivedCmd , "close_left_hand") == 0)
+		{
+			actionL->pushAction("close_hand");
+			actionL->checkActionsDone(f,true);
+			actionL->areFingersInPosition(f);	// Check for obstructing (grasped) objects
+			
+            if (!f)
+ 				reply.add("Left hand has grasped something while closing!");
+                //cout<<"Left hand has grasped something while closing!"<<endl;
+            else
+ 				reply.add("Left hand fully closed");
+                //cout<<"Left hand fully closed"<<endl;
+		}
+
+		return true;
+	}
 
     /************************************************************************/
     void getArmDependentOptions(Bottle &b, Vector &_gOrien, Vector &_gDisp,
@@ -305,7 +329,7 @@ public:
         optionL.put("grasp_model_file",rf.findFile("grasp_model_left_file").c_str());
         optionL.put("hand_sequences_file",rf.findFile("hand_sequences_file").c_str());    
 
-		cout << "-------------" << optionL.toString() << endl;
+		cout << "-- Option Left: " << optionL.toString() << endl;
 		
         Property optionR(bGeneral.toString().c_str());	// Right
         optionR.put("local",name.c_str());	//right tag?
@@ -313,11 +337,8 @@ public:
         optionR.put("grasp_model_type",rf.find("grasp_model_type").asString().c_str());
         optionR.put("grasp_model_file",rf.findFile("grasp_model_right_file").c_str());
         optionR.put("hand_sequences_file",rf.findFile("hand_sequences_file").c_str());    
-    
 
-        // parsing arm dependent config options
-        // Bottle &bArm=config.findGroup("arm_dependent");
-        // getArmDependentOptions(bArm,graspOrien,graspDisp,dOffs,dLift,home_x);
+		cout << "-- Option Right: " << optionR.toString() << endl;
 
         cout<<"***** Instantiating primitives for left hand"<<endl;
         actionL = new AFFACTIONPRIMITIVESLAYER(optionL);
@@ -350,8 +371,8 @@ public:
 		// Open ports
         string fwslash="/";
         inPort.open((fwslash+name+"/in").c_str());
-        rpcPort.open((fwslash+name+"/rpc").c_str());
-        attach(rpcPort);
+        //rpcPort.open((fwslash+name+"/rpc").c_str());
+        attachTerminal();
 
         // check whether the grasp model is calibrated,
         // otherwise calibrate it and save the results
@@ -410,7 +431,7 @@ public:
 
 		// Close ports
         inPort.close();
-        rpcPort.close();
+        //rpcPort.close();
 
         return true;
     }
@@ -432,12 +453,10 @@ public:
         actionL->pushAction("open_hand");
         actionL->checkActionsDone(f,true);
 		
-		
 		// Right hand
         actionR->pushAction("open_hand");
         actionR->checkActionsDone(f,true);
 		
-        //actionL->enableArmWaving(home_x);		// No required arm waving for hand closure (?)
     }
 
     // we don't need a thread since the actions library already
@@ -522,7 +541,7 @@ public:
 		actionR->syncCheckInterrupt(true);        
 
         inPort.interrupt();
-        rpcPort.interrupt();
+        //rpcPort.interrupt();
 
         return true;
     }
