@@ -49,10 +49,10 @@ target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} skinDynLib iKin)
 
 ## to install data files:
-#include(YarpInstallationHelpers)
-#set(conf detectTouch/conf/config.ini)
+include(YarpInstallationHelpers)
+set(conf touchDetector/conf/touchDetector.ini)
 ## alternatively, if you are too lazy to list all files explicitly, you can "GLOB" them with:
 #file(GLOB conf conf/*.ini)
 
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
-#yarp_install(FILES ${conf} DESTINATION ${ICUB_CONTEXTS_INSTALL_DIR}/detectTouch/conf)
+yarp_install(FILES ${conf} DESTINATION ${ICUB_CONTEXTS_INSTALL_DIR}/touchDetector/conf)
