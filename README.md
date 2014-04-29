@@ -5,7 +5,7 @@ Reactive Behaviors Demo
 
 -------------------------------------
 
-Travis status: [![Build Status](https://travis-ci.org/Ommac/RBDemo.svg?branch=master)](https://travis-ci.org/Ommac/RBDemo)
+Travis status (only for graspingModule): [![Build Status](https://travis-ci.org/Ommac/RBDemo.svg?branch=master)](https://travis-ci.org/Ommac/RBDemo)
 
 Continuous integration tests:
 
