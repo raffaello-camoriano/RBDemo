@@ -1,0 +1,58 @@
+language: cpp
+
+compiler:
+  - gcc
+  - clang
+
+env:
+  - CODYCO_TRAVIS_BUILD_TYPE=Debug
+  - CODYCO_TRAVIS_BUILD_TYPE=Release
+  
+branches:
+  except:
+    - superbuild
+
+install:
+  - sudo sh -c 'echo "deb http://www.icub.org/ubuntu precise contrib/science" > /etc/apt/sources.list.d/icub.list'
+  - sudo apt-get update
+  - sudo apt-get install -qq libeigen3-dev
+  - sudo apt-get --force-yes install icub
+
+before_script:
+  - cmake --version
+  # Build orocos_kinematics_dynamics and install it in a local directory
+  - git clone https://github.com/orocos/orocos_kinematics_dynamics
+  - cd orocos_kinematics_dynamics
+  - git checkout v1.2.1
+  - cd orocos_kdl
+  - mkdir build
+  - cd build
+  - mkdir local_install
+  - cmake -DCMAKE_INSTALL_PREFIX="./local_install" -DCMAKE_BUILD_TYPE=${CODYCO_TRAVIS_BUILD_TYPE} ..
+  - make
+  - make install
+  - cd ../../..
+  # Build kdl_codyco and install it in a local directory
+  - git clone https://github.com/traversaro/kdl_codyco
+  - cd kdl_codyco
+  - git checkout rovereto
+  - mkdir build
+  - cd build
+  - mkdir local_install
+  - cmake -DCMAKE_INSTALL_PREFIX="./local_install" -DCMAKE_BUILD_TYPE=${CODYCO_TRAVIS_BUILD_TYPE} ..
+  - make
+  - make install
+  - cd ../..
+  # Prepare codyco build
+  - mkdir build
+  - cd build
+  - cmake -DCODYCO_BUILD_TESTS:BOOL=ON -DCMAKE_BUILD_TYPE=${CODYCO_TRAVIS_BUILD_TYPE} -DCODYCO_TRAVIS_CI:BOOL=ON ..
+
+script:
+  - make
+  - sudo make install
+  - ctest -V
+  
+notifications:
+  email:
+    - raffaello.camoriano@iit.it
