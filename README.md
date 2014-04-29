@@ -10,6 +10,9 @@ Travis status: [![Build Status](https://travis-ci.org/Ommac/RBDemo.svg?branch=ma
 Continuous integration tests:
 
 compiler="gcc", env="RBDEMO_TRAVIS_BUILD_TYPE=Debug"
+
 compiler="gcc", env="RBDEMO_TRAVIS_BUILD_TYPE=Release"
+
 compiler="clang", env="RBDEMO_TRAVIS_BUILD_TYPE=Debug"
+
 compiler="clang", env="RBDEMO_TRAVIS_BUILD_TYPE=Release"
