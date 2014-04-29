@@ -1,6 +1,6 @@
 /* 
  * Copyright: (C) 2014 iCub Facility - Istituto Italiano di Tecnologia
- * Author: printf("run: setting new target from rpc: %f %f %f \n",targetPos[0],targetPos[1],targetPos[2]); Hoffmann
+ * Author: Matej Hoffmann
  * email:  matej.hoffmann@iit.it
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
@@ -24,6 +24,7 @@
 #include <yarp/sig/Vector.h>
 #include <yarp/math/Math.h>
 #include <iCub/ctrl/neuralNetworks.h>
+#include <iCub/skinDynLib/common.h> 
 
 #define DEFAULT_THR_PER     20
 
@@ -52,6 +53,19 @@ using namespace yarp::dev;
 using namespace yarp::math;
 using namespace iCub::ctrl;
 
+// List of the parts composing the skin of iCub
+//alternatively - instead of (re-)defining here, include skinDynLib/common.h
+#ifndef __COMMON_H__
+enum SkinPart {
+SKIN_PART_UNKNOWN=0,
+SKIN_LEFT_HAND, SKIN_LEFT_FOREARM, SKIN_LEFT_UPPER_ARM,
+SKIN_RIGHT_HAND, SKIN_RIGHT_FOREARM, SKIN_RIGHT_UPPER_ARM,
+SKIN_FRONT_TORSO,
+SKIN_PART_ALL, SKIN_PART_SIZE
+};
+#else
+ using namespace iCub::skinDynLib;
+#endif
 
 class reachingThread: public RateThread
 {
@@ -76,7 +90,8 @@ protected:
     
     BufferedPort<Bottle> inportTargetCoordinates;
     Bottle                 *targetCoordinates;
-     
+    BufferedPort<Bottle> outportHandToBeClosed;
+    
     Vector leftArmReachOffs;
     Vector leftArmHandOrien;
     Vector leftArmJointsStiffness;
@@ -211,16 +226,11 @@ protected:
     {
         if (Bottle *targetPosNew=inportTargetCoordinates.read(false))
         {
-            if (targetPosNew->size()==3)
-            {
-                target_pos[0]=targetPosNew->get(0).asDouble();
-                target_pos[1]=targetPosNew->get(1).asDouble();
-                target_pos[2]=targetPosNew->get(2).asDouble();
-                return true;
-            }
-            else{
-                return false;
-            }
+            target_pos[0]=targetPosNew->get(0).asDouble();
+            target_pos[1]=targetPosNew->get(1).asDouble();
+            target_pos[2]=targetPosNew->get(2).asDouble();
+            return true;
+           
         }
         else{
             return false;   
@@ -553,6 +563,8 @@ protected:
         
         inportTargetCoordinates.interrupt();
         inportTargetCoordinates.close();
+        outportHandToBeClosed.interrupt();
+        outportHandToBeClosed.close();
       
     }
     
@@ -625,6 +637,7 @@ public:
        
          // open ports
         inportTargetCoordinates.open((name+"/reachingTarget:i").c_str());
+        outportHandToBeClosed.open((name+"/handToBeClosed:o").c_str());
        
         string fwslash="/";
 
@@ -864,7 +877,14 @@ public:
                     fprintf(stdout,"--- Reach done => wait for grasp\n");
                     state = STATE_WAIT_FOR_GRASP;
                     graspTimer = Time::now();
-                    //TODO send signal to Raffa
+                    Bottle& b = outportHandToBeClosed.prepare(); 
+                    if(armSel==LEFTARM){
+                        b.addInt(static_cast<int>(SKIN_LEFT_HAND)); 
+                    }
+                    else{
+                        b.addInt(static_cast<int>(SKIN_RIGHT_HAND));
+                    }
+                    outportHandToBeClosed.write();
                 }
         }
         else if (state == STATE_WAIT_FOR_GRASP){
