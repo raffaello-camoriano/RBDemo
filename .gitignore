@@ -1,5 +1,13 @@
 *~
+<<<<<<< HEAD
 /main/build*/
 /graspingModule/build*/
 /faceDetector/build*/
+=======
+main/build*/
+graspingModule/build*/
+reachModule/build*/
+reachModule/test/target_pos_port/build*/
+nearThingsDetector/build
+>>>>>>> cf039e50e5940c1e6cd6926dbf81d624f2f7b240
 *kdev*
