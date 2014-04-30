@@ -1,4 +1,7 @@
 *~
-/main/build*/
-/graspingModule/build*/
+main/build*/
+graspingModule/build*/
+reachModule/build*/
+reachModule/test/target_pos_port/build*/
+nearThingsDetector/build
 *kdev*

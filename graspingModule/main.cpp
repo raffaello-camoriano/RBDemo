@@ -249,6 +249,7 @@ public:
                 //cout<<"Left hand fully closed"<<endl;
 		}
 
+		delete [] receivedCmd;
 		return true;
 	}
 
@@ -541,6 +542,7 @@ public:
 		actionR->syncCheckInterrupt(true);        
 
         inPort.interrupt();
+		detachTerminal();
         //rpcPort.interrupt();
 
         return true;
