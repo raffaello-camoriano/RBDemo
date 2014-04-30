@@ -44,7 +44,4 @@ include_directories(#${PCL_INCLUDE_DIRS}
 add_executable (${PROJECTNAME} ${source} ${header}  ${idl})
 target_link_libraries (${PROJECTNAME} ${ICUB_LIBRARIES} ${YARP_LIBRARIES})
 
-add_executable(startNearEnv startNearEnv.cpp)
-target_link_libraries(startNearEnv ${YARP_LIBRARIES})
-
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
