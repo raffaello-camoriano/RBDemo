@@ -15,6 +15,62 @@
  * Public License for more details
 */
 
+
+/** 
+\defgroup reachModule
+ 
+@ingroup icub_module  
+ 
+Module that makes the iCub reach with its hand to a point specified in Cartesian coordinates and then sends a trigger for grasp on the output.
+ 
+Author: Matej Hoffmann
+
+CopyPolicy: Released under the terms of the GNU GPL v2.0. 
+
+\section intro_sec Description 
+Module that makes the iCub reach with its hand to a point specified in Cartesian coordinates and then sends a trigger for grasp on the output.
+The reaching part is modified from demoGrasp_IIT_ISR.
+
+1) The input is specified on the input port - stream or rpc.  
+ 
+2) If there is a new target, the robot picks the arm in the ipsilateral space and reaches there.
+
+3) If successful, it sends a signal on the output port telling a grasping module which hand to use to grasp.
+
+There are timeouts for the reach and grasp, then the robot goes back home.
+ 
+\section lib_sec Libraries 
+- YARP libraries. 
+- \ref icubmod library. 
+
+\section parameters_sec Parameters
+ 
+\section portsa_sec Ports Accessed
+The robot interface is assumed to be operative.
+Cartesian interface is required. 
+ 
+\section portsc_sec Ports Created 
+
+Input ports
+- \e /<modName>/reachingTarget:i receives a bottle containing three coordinates of the point to be reached in robot root FoR
+- \e /<modName>/reachModule/rpc can be used to issue the targets for the robot in the format "go x y z"; the "home" command is also recognized 
+
+Output ports
+- \e /<modName>/handToBeClosed:o sends an int derived from the SkinPart enum class - SKIN_LEFT_HAND == 1 or SKIN_RIGHT_HAND == 4
+
+\section in_files_sec Input Data Files
+None.
+
+\section out_data_sec Output Data Files 
+None. 
+
+\section tested_os_sec Tested OS
+Linux
+
+\author Matej Hoffmann
+
+*/
+
 #include <gsl/gsl_math.h>
 
 #include <yarp/os/all.h>
