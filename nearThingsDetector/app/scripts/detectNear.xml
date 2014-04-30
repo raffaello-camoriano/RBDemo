@@ -36,14 +36,6 @@
             <priority>no</priority>
             <description>stereo disparity world image</description>
         </input>
-
-        <input>
-            <type>Bottle</type>
-            <port carrier="udp">/detectNear/blobs:i</port>
-            <required>no</required>
-            <priority>no</priority>
-            <description> Receives blobs coordinates</description>
-        </input> 
         
         <!-- output data if available -->
         <output>
@@ -56,13 +48,6 @@
             <port carrier="tcp">/detectNear/target:o</port>
             <description> Coordinates of closest object</description>
         </output>
-        
-        <output>
-            <type>ImageOfPixelMono</type>
-            <port carrier="udp">/detectNear/imTest:o</port>
-            <description> Send out the binary image of selected blob</description>
-        </output>
-
     </data>
 
     <dependencies>
