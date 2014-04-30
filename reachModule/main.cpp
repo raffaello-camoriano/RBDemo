@@ -636,8 +636,16 @@ public:
     bool threadInit()
     {
         //general part
+        //getting some default values mostly from contexts/demoGrasp_IIT_ISR/config.ini
         robot = "icubSim";
-        //getting some default values from contexts/demoGrasp_IIT_ISR/config.ini
+        if (rf.check("robot"))
+            {
+                robot = rf.find("robot").asString();
+                cout << "Robot is: " << robot << endl;
+            }
+            else cout << "Could not find robot option in the config file; using "
+                      << robot << " as default\n";
+       
         useLeftArm = true;
         useRightArm = true;
         trajTime=2.0;
