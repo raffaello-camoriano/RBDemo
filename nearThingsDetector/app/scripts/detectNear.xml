@@ -51,17 +51,16 @@
             <port carrier="udp">/detectNear/im3D:o</port>
             <description> Send out the binary image of selected blob</description>
         </output>
+        <output>
+            <type>Bottle</type>
+            <port carrier="tcp">/detectNear/target:o</port>
+            <description> Coordinates of closest object</description>
+        </output>
         
         <output>
             <type>ImageOfPixelMono</type>
             <port carrier="udp">/detectNear/imTest:o</port>
             <description> Send out the binary image of selected blob</description>
-        </output>
-
-        <output>
-            <type>Bottle</type>
-            <port carrier="tcp">/detectNear/target:o</port>
-            <description> Coordinates of closest object</description>
         </output>
 
     </data>
