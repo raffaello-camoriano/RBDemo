@@ -1077,7 +1077,7 @@ int main(int argc, char *argv[])
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultContext("reachModule");
-    //rf.setDefaultConfigFile("reachConfig.ini");
+    rf.setDefaultConfigFile("reachConfig.ini");
     rf.configure(argc,argv);
 
     reachingModule mod;
