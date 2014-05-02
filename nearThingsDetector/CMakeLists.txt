@@ -7,7 +7,8 @@ set(PROJECTNAME detectNear)
 project(${PROJECTNAME})
 
 find_package(YARP REQUIRED)
-find_package(ICUB REQUIRED)
+find_package(OpenCV)
+find_package(ICUB)
 find_package(ICUBcontrib)
 
 list(APPEND CMAKE_MODULE_PATH ${YARP_MODULE_PATH})
@@ -28,17 +29,19 @@ file(GLOB header include/*.h)
 
 source_group("Source Files" FILES ${source})
 source_group("Header Files" FILES ${header})
-source_group("IDL Files" FILES ${idl})
+# source_group("IDL Files" FILES ${idl})
 
-include_directories(${PCL_INCLUDE_DIRS} 
+include_directories(#${PCL_INCLUDE_DIRS} 
                     ${CMAKE_SOURCE_DIR} 
                     ${PROJECT_SOURCE_DIR}/include 
-                    ${thrift3D_INCLUDE_DIRS} 
+                    #${thrift3D_INCLUDE_DIRS} 
                     ${YARP_INCLUDE_DIRS}
                     ${ICUB_INCLUDE_DIRS}
+                    ${OpenCV_INCLUDE_DIRS} 
                     )                    
 
                     
 add_executable (${PROJECTNAME} ${source} ${header}  ${idl})
-target_link_libraries (${PROJECTNAME} ${ICUB_LIBRARIES} ${YARP_LIBRARIES} thrift3D)
+target_link_libraries (${PROJECTNAME} ${ICUB_LIBRARIES} ${YARP_LIBRARIES})
+
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
