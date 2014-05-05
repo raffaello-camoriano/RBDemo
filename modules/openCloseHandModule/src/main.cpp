@@ -1,7 +1,7 @@
 /* 
  * Copyright (C) 2010 RobotCub Consortium, European Commission FP6 Project IST-004370
- * Authors: Ugo Pattacini, Raffaello Camoriano
- * email:  ugo.pattacini@iit.it, raffaello.camoriano@iit.it
+ * Author: Raffaello Camoriano
+ * email: raffaello.camoriano@iit.it
  * website: www.robotcub.org
  * Permission is granted to copy, distribute, and/or modify this program
  * under the terms of the GNU General Public License, version 2 or any
@@ -17,7 +17,7 @@
 */
 
 /** 
-\defgroup graspingModule
+\defgroup openCloseHandModule
  
 @ingroup icub_module  
  
@@ -26,7 +26,7 @@ library.
 
 Copyright (C) 2010 RobotCub Consortium
  
-Authors: Ugo Pattacini and Raffaello Camoriano
+Author: Raffaello Camoriano
 
 CopyPolicy: Released under the terms of the GNU GPL v2.0. 
 
@@ -34,7 +34,7 @@ CopyPolicy: Released under the terms of the GNU GPL v2.0.
 An example module that makes use of \ref ActionPrimitives 
 library in order to perform simple grasping with either of the hands.
  
-1) Both hands aro opened at startup
+1) Both hands are opened at startup
 
 2) A bottle containing the code of the hand to be closed
 is received
@@ -117,9 +117,9 @@ home_orientation                (-0.029976 0.763076 -0.645613 2.884471)
 \endcode 
 
 \section tested_os_sec Tested OS
-Windows, Linux
+Windows
 
-\author Ugo Pattacini
+\author Raffaello Camoriano
 */ 
 
 #include <iostream>
@@ -157,7 +157,7 @@ using namespace iCub::action;
 
 
 /************************************************************************/
-class graspingModule: public RFModule
+class openCloseHandModule: public RFModule
 {
 protected:
     AFFACTIONPRIMITIVESLAYER *actionL;    // Action list associated to the left hand
@@ -169,7 +169,7 @@ protected:
 
 public:
     /************************************************************************/
-    graspingModule()
+    openCloseHandModule()
     {
         actionL=NULL;
         actionR=NULL;
@@ -580,15 +580,15 @@ int main(int argc, char *argv[])
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultConfigFile("config.ini");
-    rf.setDefaultContext("graspingModule");
+    rf.setDefaultContext("openCloseHandModule");
     rf.setDefault("grasp_model_type","tactile");    // Check this parameter, does it correspond to the one stored in grasp_model_* -> name?
                                                     // If so, one default option for each hand may be needed.
     rf.setDefault("grasp_model_left_file","grasp_model_left.ini");
     rf.setDefault("grasp_model_right_file","grasp_model_right.ini");
     rf.setDefault("hand_sequences_file","hand_sequences.ini");
-    rf.setDefault("name","graspingModule");
+    rf.setDefault("name","openCloseHandModule");
     rf.configure(argc,argv);
 
-    graspingModule mod;
+    openCloseHandModule mod;
     return mod.runModule(rf);
 }
