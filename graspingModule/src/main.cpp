@@ -59,10 +59,10 @@ library, we also have:
  
 - \e /<modName>/rpc remote procedure call. 
     Recognized remote commands:
-	-'open_left_hand'
-	-'open_right_hand'
-	-'close_left_hand'
-	-'close_right_hand'
+    -'open_left_hand'
+    -'open_right_hand'
+    -'close_left_hand'
+    -'close_right_hand'
 
 
 \section in_files_sec Input Data Files
@@ -137,7 +137,7 @@ Windows, Linux
 #include <yarp/dev/Drivers.h>
 #include <iCub/perception/models.h>
 #include <iCub/action/actionPrimitives.h>
-#include <iCub/skinDynLib/common.h>			// Common skin parts codes
+#include <iCub/skinDynLib/common.h>            // Common skin parts codes
 
 //#define USE_LEFT    0
 //#define USE_RIGHT   1
@@ -160,8 +160,8 @@ using namespace iCub::action;
 class ExampleModule: public RFModule
 {
 protected:
-    AFFACTIONPRIMITIVESLAYER *actionL;	// Action list associated to the left hand
-    AFFACTIONPRIMITIVESLAYER *actionR;	// Action list associated to the right hand
+    AFFACTIONPRIMITIVESLAYER *actionL;    // Action list associated to the left hand
+    AFFACTIONPRIMITIVESLAYER *actionR;    // Action list associated to the right hand
     BufferedPort<Bottle>      inPort;
     Port                      rpcPort;
 
@@ -176,82 +176,82 @@ public:
         firstRun=true;
     }
 
-	bool respond(const Bottle &  	command,
-				 Bottle &  	reply)
-	{
-		char * receivedCmd = new char [command.get(0).asString().length()+1];
-		strcpy (receivedCmd, command.get(0).asString().c_str());
+    bool respond(const Bottle &      command,
+                 Bottle &      reply)
+    {
+        char * receivedCmd = new char [command.get(0).asString().length()+1];
+        strcpy (receivedCmd, command.get(0).asString().c_str());
 
-		// Stop current motion and clear actions queue
-		actionL->stopControl();
-		actionR->stopControl();
-		actionL->clearActionsQueue();
-		actionR->clearActionsQueue();
+        // Stop current motion and clear actions queue
+        actionL->stopControl();
+        actionR->stopControl();
+        actionL->clearActionsQueue();
+        actionR->clearActionsQueue();
 
-		bool f;
+        bool f;
 
-		reply.clear();
+        reply.clear();
 
-		if (strcmp(receivedCmd , "open_left_hand") == 0)
-		{
+        if (strcmp(receivedCmd , "open_left_hand") == 0)
+        {
 
-			actionL->pushAction("open_hand");
-			actionL->checkActionsDone(f,true);
-			actionL->areFingersInPosition(f);	// Check for obstructing (grasped) objects
-			
+            actionL->pushAction("open_hand");
+            actionL->checkActionsDone(f,true);
+            actionL->areFingersInPosition(f);    // Check for obstructing (grasped) objects
+            
             if (!f)
-				reply.add("Something is impeding left hand!");
+                reply.add("Something is impeding left hand!");
                 //cout<<"Something is impeding left hand!"<<endl;
             else
-				reply.add("Left hand fully opened");
+                reply.add("Left hand fully opened");
                 //cout<<"Left hand fully opened"<<endl;
-		}
+        }
 
-		else if (strcmp(receivedCmd , "open_right_hand") == 0)
-		{
-			actionR->pushAction("open_hand");
-			actionR->checkActionsDone(f,true);
-			actionR->areFingersInPosition(f);	// Check for obstructing (grasped) objects
-			
+        else if (strcmp(receivedCmd , "open_right_hand") == 0)
+        {
+            actionR->pushAction("open_hand");
+            actionR->checkActionsDone(f,true);
+            actionR->areFingersInPosition(f);    // Check for obstructing (grasped) objects
+            
             if (!f)
-				reply.add("Something is impeding right hand!");
+                reply.add("Something is impeding right hand!");
                 //cout<<"Something is impeding right hand!"<<endl;
             else
- 				reply.add("Right hand fully opened");
-				//cout<<"Right hand fully opened"<<endl;
-		}
+                 reply.add("Right hand fully opened");
+                //cout<<"Right hand fully opened"<<endl;
+        }
 
-		else if (strcmp(receivedCmd , "close_right_hand") == 0)
-		{
-			actionR->pushAction("close_hand");
-			actionR->checkActionsDone(f,true);
-			actionR->areFingersInPosition(f);	// Check for obstructing (grasped) objects
-			
+        else if (strcmp(receivedCmd , "close_right_hand") == 0)
+        {
+            actionR->pushAction("close_hand");
+            actionR->checkActionsDone(f,true);
+            actionR->areFingersInPosition(f);    // Check for obstructing (grasped) objects
+            
             if (!f)
- 				reply.add("Right hand has grasped something while closing!");
+                 reply.add("Right hand has grasped something while closing!");
                 //cout<<"Right hand has grasped something while closing!"<<endl;
             else
- 				reply.add("Right hand fully closed");
+                 reply.add("Right hand fully closed");
                 //cout<<"Right hand fully closed"<<endl;
-		}
+        }
 
-		else if (strcmp(receivedCmd , "close_left_hand") == 0)
-		{
-			actionL->pushAction("close_hand");
-			actionL->checkActionsDone(f,true);
-			actionL->areFingersInPosition(f);	// Check for obstructing (grasped) objects
-			
+        else if (strcmp(receivedCmd , "close_left_hand") == 0)
+        {
+            actionL->pushAction("close_hand");
+            actionL->checkActionsDone(f,true);
+            actionL->areFingersInPosition(f);    // Check for obstructing (grasped) objects
+            
             if (!f)
- 				reply.add("Left hand has grasped something while closing!");
+                 reply.add("Left hand has grasped something while closing!");
                 //cout<<"Left hand has grasped something while closing!"<<endl;
             else
- 				reply.add("Left hand fully closed");
+                 reply.add("Left hand fully closed");
                 //cout<<"Left hand fully closed"<<endl;
-		}
+        }
 
-		delete [] receivedCmd;
-		return true;
-	}
+        delete [] receivedCmd;
+        return true;
+    }
 
     /************************************************************************/
     void getArmDependentOptions(Bottle &b, Vector &_gOrien, Vector &_gDisp,
@@ -315,7 +315,7 @@ public:
         setName(name.c_str());
 
         Property config;
-		config.fromConfigFile(rf.findFile("from").c_str());
+        config.fromConfigFile(rf.findFile("from").c_str());
         Bottle &bGeneral=config.findGroup("general");
         if (bGeneral.isNull())
         {
@@ -326,25 +326,25 @@ public:
 
         // parsing general config options
 
-        Property optionL(bGeneral.toString().c_str());	// Left
-		optionL.put("local",name.c_str());	//module name
-		optionL.put("robot",rf.findGroup("general").find("robot").asString().c_str());
+        Property optionL(bGeneral.toString().c_str());    // Left
+        optionL.put("local",name.c_str());    //module name
+        optionL.put("robot",rf.findGroup("general").find("robot").asString().c_str());
         optionL.put("part","left_arm");
         optionL.put("grasp_model_type",rf.find("grasp_model_type").asString().c_str());
         optionL.put("grasp_model_file",rf.findFile("grasp_model_left_file").c_str());
         optionL.put("hand_sequences_file",rf.findFile("hand_sequences_file").c_str());  
 
-		cout << "-- Option Left: " << optionL.toString() << endl;
-		
-        Property optionR(bGeneral.toString().c_str());	// Right
-        optionR.put("local",name.c_str());	//module name
-		optionR.put("robot",rf.findGroup("general").find("robot").asString().c_str());
+        cout << "-- Option Left: " << optionL.toString() << endl;
+        
+        Property optionR(bGeneral.toString().c_str());    // Right
+        optionR.put("local",name.c_str());    //module name
+        optionR.put("robot",rf.findGroup("general").find("robot").asString().c_str());
         optionR.put("part","right_arm");
         optionR.put("grasp_model_type",rf.find("grasp_model_type").asString().c_str());
         optionR.put("grasp_model_file",rf.findFile("grasp_model_right_file").c_str());
         optionR.put("hand_sequences_file",rf.findFile("hand_sequences_file").c_str());    
 
-		cout << "-- Option Right: " << optionR.toString() << endl;
+        cout << "-- Option Right: " << optionR.toString() << endl;
 
         cout<<"***** Instantiating primitives for left hand"<<endl;
         actionL = new AFFACTIONPRIMITIVESLAYER(optionL);
@@ -361,33 +361,33 @@ public:
             delete actionR;
             return false;
         }
-		
-		// Get available hand sequence keys for left hand and print them
+        
+        // Get available hand sequence keys for left hand and print them
         deque<string> qL = actionL->getHandSeqList();
         cout<<"***** List of available left hand sequence keys:"<<endl;
         for (size_t i=0; i<qL.size(); i++)
             cout<<qL[i]<<endl;
-			
-		// Get available hand sequence keys for right hand and print them
+            
+        // Get available hand sequence keys for right hand and print them
         deque<string> qR = actionR->getHandSeqList();
         cout<<"***** List of available right hand sequence keys:"<<endl;
         for (size_t i=0; i<qR.size(); i++)
             cout<<qR[i]<<endl;
-			
-		// Open ports
+            
+        // Open ports
         string fwslash="/";
         inPort.open((fwslash+name+"/handToBeClosed:i").c_str());
-		cout << "inPort opened" << endl;
+        cout << "inPort opened" << endl;
         rpcPort.open((fwslash+name+"/rpc").c_str());
         cout << "rpcPort opened" << endl;
 
-		// Attach rpcPort to the respond() method
-		attach(rpcPort);
-		
+        // Attach rpcPort to the respond() method
+        attach(rpcPort);
+        
         // check whether the grasp model is calibrated,
         // otherwise calibrate it and save the results
-		
-		// Left hand
+        
+        // Left hand
         Model *modelL; actionL->getGraspModel(modelL);
         if (modelL!=NULL)
         {
@@ -407,7 +407,7 @@ public:
             }
         }
 
-		// Right hand
+        // Right hand
         Model *modelR; actionR->getGraspModel(modelR);
         if (modelR!=NULL)
         {
@@ -435,15 +435,15 @@ public:
     {
         if (actionL!=NULL)
             delete actionL;
-			
+            
         if (actionR!=NULL)
             delete actionR;
 
-		// Close ports
+        // Close ports
         inPort.close();
-		cout << "inPort closed" << endl;
+        cout << "inPort closed" << endl;
         rpcPort.close();
-		cout << "rpcPort closed" << endl;
+        cout << "rpcPort closed" << endl;
 
         return true;
     }
@@ -459,16 +459,16 @@ public:
     {
         bool f;
 
-		// Open the hands at startup
-		
-		// Left hand
+        // Open the hands at startup
+        
+        // Left hand
         actionL->pushAction("open_hand");
         actionL->checkActionsDone(f,true);
-		
-		// Right hand
+        
+        // Right hand
         actionR->pushAction("open_hand");
         actionR->checkActionsDone(f,true);
-		
+        
     }
 
     // we don't need a thread since the actions library already
@@ -490,54 +490,54 @@ public:
         {
             iCub::skinDynLib::SkinPart handSide;
             bool fr;
-			bool fl;
-			
-			// Get the code of the hand to be closed
+            bool fl;
+            
+            // Get the code of the hand to be closed
             handSide = static_cast<iCub::skinDynLib::SkinPart>(b->get(0).asInt());
 
-/*		NOTE: We are using the following enums from iCub/skinDynLib/common.h
+/*        NOTE: We are using the following enums from iCub/skinDynLib/common.h
 
-		enum SkinPart { 
-			SKIN_PART_UNKNOWN=0, 
-			SKIN_LEFT_HAND, SKIN_LEFT_FOREARM, SKIN_LEFT_UPPER_ARM, 
-			SKIN_RIGHT_HAND, SKIN_RIGHT_FOREARM, SKIN_RIGHT_UPPER_ARM, 
-			SKIN_FRONT_TORSO, 
-			SKIN_PART_ALL, SKIN_PART_SIZE
-		};
+        enum SkinPart { 
+            SKIN_PART_UNKNOWN=0, 
+            SKIN_LEFT_HAND, SKIN_LEFT_FOREARM, SKIN_LEFT_UPPER_ARM, 
+            SKIN_RIGHT_HAND, SKIN_RIGHT_FOREARM, SKIN_RIGHT_UPPER_ARM, 
+            SKIN_FRONT_TORSO, 
+            SKIN_PART_ALL, SKIN_PART_SIZE
+        };
 */
 
             // grasp with either of the hands (wait until it's done)
 
-			if ( handSide == iCub::skinDynLib::SKIN_LEFT_HAND)
-			{
-				// Left hand
-				actionL->pushAction("close_hand");
-				actionL->checkActionsDone(fl,true);
-				actionL->areFingersInPosition(fl);	// Check for obstructing (grasped) objects		
-			}
-			else if ( handSide == iCub::skinDynLib::SKIN_RIGHT_HAND)
-			{
-				// Right hand
-				actionR->pushAction("close_hand");
-				actionR->checkActionsDone(fr,true);
-				actionR->areFingersInPosition(fr);	// Check for obstructing (grasped) objects
-			}
+            if ( handSide == iCub::skinDynLib::SKIN_LEFT_HAND)
+            {
+                // Left hand
+                actionL->pushAction("close_hand");
+                actionL->checkActionsDone(fl,true);
+                actionL->areFingersInPosition(fl);    // Check for obstructing (grasped) objects        
+            }
+            else if ( handSide == iCub::skinDynLib::SKIN_RIGHT_HAND)
+            {
+                // Right hand
+                actionR->pushAction("close_hand");
+                actionR->checkActionsDone(fr,true);
+                actionR->areFingersInPosition(fr);    // Check for obstructing (grasped) objects
+            }
 
             // if fingers are not in position,
             // it's likely that we've just grasped
             // something, so print it!
-			
-			// Left
+            
+            // Left
             if (!fl)
                 cout<<"Wow, got something with left hand!"<<endl;
             else
                 cout<<"Sorry :( ... nothing to grasp with left hand"<<endl;
-			
-			// Right
+            
+            // Right
             if (!fr)
                 cout<<"Wow, got something with right hand!"<<endl;
             else
-                cout<<"Sorry :( ... nothing to grasp with right hand"<<endl;				
+                cout<<"Sorry :( ... nothing to grasp with right hand"<<endl;                
         }
 
         return true;
@@ -550,15 +550,15 @@ public:
         // the execution until it's done, we need to 
         // take control and exit from the waiting state
         actionL->syncCheckInterrupt(true);        
-		actionR->syncCheckInterrupt(true);        
+        actionR->syncCheckInterrupt(true);        
 
-		// Interrupt any blocking reads on the input port
+        // Interrupt any blocking reads on the input port
         inPort.interrupt();
-		cout << "inPort interrupted" << endl;
+        cout << "inPort interrupted" << endl;
 
-		// Interrupt any blocking reads on the input port		
-		rpcPort.interrupt();
-		cout << "rpcPort interrupted" << endl;
+        // Interrupt any blocking reads on the input port        
+        rpcPort.interrupt();
+        cout << "rpcPort interrupted" << endl;
 
         return true;
     }
@@ -581,8 +581,8 @@ int main(int argc, char *argv[])
     rf.setVerbose(true);
     rf.setDefaultConfigFile("config.ini");
     rf.setDefaultContext("graspingModule");
-    rf.setDefault("grasp_model_type","tactile");	// Check this parameter, does it correspond to the one stored in grasp_model_* -> name?
-													// If so, one default option for each hand may be needed.
+    rf.setDefault("grasp_model_type","tactile");    // Check this parameter, does it correspond to the one stored in grasp_model_* -> name?
+                                                    // If so, one default option for each hand may be needed.
     rf.setDefault("grasp_model_left_file","grasp_model_left.ini");
     rf.setDefault("grasp_model_right_file","grasp_model_right.ini");
     rf.setDefault("hand_sequences_file","hand_sequences.ini");
