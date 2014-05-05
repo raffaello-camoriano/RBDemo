@@ -3,7 +3,7 @@
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
 cmake_minimum_required(VERSION 2.6)
-set(PROJECTNAME graspingModule)
+set(PROJECTNAME openCloseHandModule)
 project(${PROJECTNAME})
 
 find_package(YARP)
@@ -30,7 +30,7 @@ icubcontrib_add_uninstall_target()
 file(GLOB conf_ini ${CMAKE_CURRENT_SOURCE_DIR}/app/conf/*.ini)
 file(GLOB app_xml ${CMAKE_CURRENT_SOURCE_DIR}/app/scripts/*.xml)
 yarp_install(FILES ${conf_ini} DESTINATION ${ICUBCONTRIB_CONTEXTS_INSTALL_DIR}/${PROJECTNAME})
-yarp_install(FILES ${app_xml} DESTINATION ${ICUBCONTRIB_APPLICATIONS_INSTALL_DIR}/${PROJECTNAME})
+yarp_install(FILES ${app_xml} DESTINATION ${ICUBCONTRIB_APPLICATIONS_TEMPLATES_INSTALL_DIR}/${PROJECTNAME})
 
 # Debug: Print out all variables
 get_cmake_property(_variableNames VARIABLES)
