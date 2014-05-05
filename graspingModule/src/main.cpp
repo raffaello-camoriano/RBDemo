@@ -55,7 +55,7 @@ The robot interface is assumed to be operative.
 Aside from the internal ports created by \ref ActionPrimitives 
 library, we also have: 
  
-- \e /<modName>/in receives a bottle containing the code associated to the hand to close
+- \e /<modName>/handToBeClosed:i receives a bottle containing the code associated to the hand to close
  
 - \e /<modName>/rpc remote procedure call. 
     Recognized remote commands:
@@ -163,7 +163,7 @@ protected:
     AFFACTIONPRIMITIVESLAYER *actionL;	// Action list associated to the left hand
     AFFACTIONPRIMITIVESLAYER *actionR;	// Action list associated to the right hand
     BufferedPort<Bottle>      inPort;
-    //Port                      rpcPort;
+    Port                      rpcPort;
 
     bool firstRun;
 
@@ -314,26 +314,31 @@ public:
         string name=rf.find("name").asString().c_str();
         setName(name.c_str());
 
-        Property config; config.fromConfigFile(rf.findFile("from").c_str());
+        Property config;
+		config.fromConfigFile(rf.findFile("from").c_str());
         Bottle &bGeneral=config.findGroup("general");
         if (bGeneral.isNull())
         {
             cout<<"Error: group general is missing!"<<endl;
+
             return false;
         }
 
         // parsing general config options
+
         Property optionL(bGeneral.toString().c_str());	// Left
-		optionL.put("local",name.c_str());	//left tag?
+		optionL.put("local",name.c_str());	//module name
+		optionL.put("robot",rf.findGroup("general").find("robot").asString().c_str());
         optionL.put("part","left_arm");
         optionL.put("grasp_model_type",rf.find("grasp_model_type").asString().c_str());
         optionL.put("grasp_model_file",rf.findFile("grasp_model_left_file").c_str());
-        optionL.put("hand_sequences_file",rf.findFile("hand_sequences_file").c_str());    
+        optionL.put("hand_sequences_file",rf.findFile("hand_sequences_file").c_str());  
 
 		cout << "-- Option Left: " << optionL.toString() << endl;
 		
         Property optionR(bGeneral.toString().c_str());	// Right
-        optionR.put("local",name.c_str());	//right tag?
+        optionR.put("local",name.c_str());	//module name
+		optionR.put("robot",rf.findGroup("general").find("robot").asString().c_str());
         optionR.put("part","right_arm");
         optionR.put("grasp_model_type",rf.find("grasp_model_type").asString().c_str());
         optionR.put("grasp_model_file",rf.findFile("grasp_model_right_file").c_str());
@@ -371,10 +376,14 @@ public:
 			
 		// Open ports
         string fwslash="/";
-        inPort.open((fwslash+name+"/in").c_str());
-        //rpcPort.open((fwslash+name+"/rpc").c_str());
-        attachTerminal();
+        inPort.open((fwslash+name+"/handToBeClosed:i").c_str());
+		cout << "inPort opened" << endl;
+        rpcPort.open((fwslash+name+"/rpc").c_str());
+        cout << "rpcPort opened" << endl;
 
+		// Attach rpcPort to the respond() method
+		attach(rpcPort);
+		
         // check whether the grasp model is calibrated,
         // otherwise calibrate it and save the results
 		
@@ -432,7 +441,9 @@ public:
 
 		// Close ports
         inPort.close();
-        //rpcPort.close();
+		cout << "inPort closed" << endl;
+        rpcPort.close();
+		cout << "rpcPort closed" << endl;
 
         return true;
     }
@@ -541,9 +552,13 @@ public:
         actionL->syncCheckInterrupt(true);        
 		actionR->syncCheckInterrupt(true);        
 
+		// Interrupt any blocking reads on the input port
         inPort.interrupt();
-		detachTerminal();
-        //rpcPort.interrupt();
+		cout << "inPort interrupted" << endl;
+
+		// Interrupt any blocking reads on the input port		
+		rpcPort.interrupt();
+		cout << "rpcPort interrupted" << endl;
 
         return true;
     }
@@ -564,9 +579,10 @@ int main(int argc, char *argv[])
 
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultContext("graspingModule");
     rf.setDefaultConfigFile("config.ini");
-    rf.setDefault("grasp_model_type","tactile");
+    rf.setDefaultContext("graspingModule");
+    rf.setDefault("grasp_model_type","tactile");	// Check this parameter, does it correspond to the one stored in grasp_model_* -> name?
+													// If so, one default option for each hand may be needed.
     rf.setDefault("grasp_model_left_file","grasp_model_left.ini");
     rf.setDefault("grasp_model_right_file","grasp_model_right.ini");
     rf.setDefault("hand_sequences_file","hand_sequences.ini");
