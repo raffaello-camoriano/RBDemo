@@ -9,9 +9,15 @@
 	</authors>
 	
 	<dependencies>
+		<!-- touchDetector -->	
 		<port>/skinManager/skin_events:o</port>
+		
+		<!-- graspingModule -->
+		<port>/touchDetector/contact_pos:o</port>
+		<port>/reachModule/handToBeClosed:o</port>		
 	</dependencies>
 
+	<!-- touchDetector -->
 	<module>
 		<name>touchDetector</name>
 		<node>localhost</node>
@@ -24,4 +30,21 @@
 		<protocol>tcp</protocol>
 	</connection>
 
+	<!-- graspingModule -->
+	<module>
+		<name>graspingModule</name>
+		<node>localhost</node>
+		<tag>graspingModuleTag</tag>
+	</module>
+
+	<connection>
+		<from>/touchDetector/contact_pos:o</from>
+		<to>/graspingModule/handToBeClosed:i</to>
+	</connection>
+
+	<connection>
+		<from>/reachModule/handToBeClosed:o</from>
+		<to>/graspingModule/handToBeClosed:i</to>
+	</connection>
+		
 </application>

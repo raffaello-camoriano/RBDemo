@@ -1,0 +1,166 @@
+<application>
+    <name>detectNearThings</name>
+    <module>
+        <name>SFM</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 235.00) (y 352.90))</geometry>
+    </module>
+    <module>
+        <name>detectNear</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <workdir>C:\ProgramsTanis\IIT\VS\RBDemo\nearThingsDetector\build\bin\Release</workdir>
+        <geometry>(Pos (x 552.00) (y 339.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix>/dist3D</prefix>
+        <geometry>(Pos (x 762.00) (y 275.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix>/disp</prefix>
+        <geometry>(Pos (x 552.00) (y 239.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix>/world</prefix>
+        <geometry>(Pos (x 549.00) (y 485.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix>/test</prefix>
+        <geometry>(Pos (x 764.00) (y 429.90))</geometry>
+    </module>
+    <connection>
+        <from>/SFM/world:o</from>
+        <to>/detectNear/world:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 443.50) (y 477.00)) ((x 349.00) (y 421.00)) ((x 553.00) (y 383.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/detectNear/im3D:o</from>
+        <to>/dist3D/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 732.00) (y 332.00)) ((x 722.00) (y 358.00)) ((x 763.00) (y 294.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/SFM/world:o</from>
+        <to>/detectNear/world:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 292.00) (y 328.50)) ((x 154.00) (y 351.00)) ((x 451.00) (y 306.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/camcalib/right/out</from>
+        <to>/SFM/right:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 207.00) (y 374.00)) ((x 199.00) (y 350.00)) ((x 236.00) (y 396.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/detectNear/target:o</from>
+        <to external="true">/searchforiKinPort</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 745.50) (y 384.50)) ((x 722.00) (y 383.00)) ((x 798.00) (y 385.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/camcalib/left/out</from>
+        <to>/SFM/left:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 203.50) (y 332.50)) ((x 192.00) (y 292.00)) ((x 236.00) (y 371.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/SFM/world:o</from>
+        <to>/detectNear/world:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 476.50) (y 158.50)) ((x 421.00) (y 159.00)) ((x 553.00) (y 158.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/SFM/world:o</from>
+        <to>/detectNear/world:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 617.50) (y 449.50)) ((x 392.00) (y 505.00)) ((x 864.00) (y 394.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/SFM/disp:o</from>
+        <to>/disp/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 436.50) (y 294.50)) ((x 349.00) (y 371.00)) ((x 553.00) (y 258.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/SFM/disp:o</from>
+        <to>/detectNear/disp:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 440.00) (y 303.50)) ((x 349.00) (y 371.00)) ((x 553.00) (y 358.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/SFM/world:o</from>
+        <to>/detectNear/world:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 605.50) (y 472.50)) ((x 368.00) (y 563.00)) ((x 864.00) (y 382.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/SFM/disp:o</from>
+        <to>/disp/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 436.50) (y 294.50)) ((x 341.00) (y 331.00)) ((x 553.00) (y 258.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/SFM/disp:o</from>
+        <to>/detectNear/disp:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 436.50) (y 344.50)) ((x 341.00) (y 331.00)) ((x 553.00) (y 358.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/SFM/world:o</from>
+        <to>/detectNear/world:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 443.00) (y 427.50)) ((x 354.00) (y 472.00)) ((x 553.00) (y 383.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/SFM/world:o</from>
+        <to>/world/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 441.50) (y 488.00)) ((x 349.00) (y 421.00)) ((x 550.00) (y 504.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/detectNear/imTest:o</from>
+        <to>/test/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 733.00) (y 428.00)) ((x 722.00) (y 408.00)) ((x 765.00) (y 448.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/SFM/disp:o</from>
+        <to>/detectNear/disp:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 440.00) (y 303.50)) ((x 348.00) (y 249.00)) ((x 553.00) (y 358.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/SFM/world:o</from>
+        <to>/detectNear/world:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 443.50) (y 477.00)) ((x 355.00) (y 571.00)) ((x 553.00) (y 383.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/SFM/disp:o</from>
+        <to>/detectNear/disp:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 447.50) (y 275.50)) ((x 363.00) (y 193.00)) ((x 553.00) (y 358.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/SFM/world:o</from>
+        <to>/detectNear/world:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 454.50) (y 468.00)) ((x 377.00) (y 553.00)) ((x 553.00) (y 383.00))  )</geometry>
+    </connection>
+</application>
