@@ -1,0 +1,19 @@
+﻿Build started 30/04/2014 18:03:15.
+     1>Project "C:\ProgramsTanis\IIT\VS\RBDemo\nearThingsDetector\build\startNearEnv.vcxproj" on node 3 (build target(s)).
+     1>InitializeBuildStatus:
+         Creating "startNearEnv.dir\Release\startNearEnv.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       CustomBuild:
+         All outputs are up-to-date.
+       ClCompile:
+         All outputs are up-to-date.
+       Link:
+         All outputs are up-to-date.
+         startNearEnv.vcxproj -> C:\ProgramsTanis\IIT\VS\RBDemo\nearThingsDetector\build\bin\Release\startNearEnv.exe
+       FinalizeBuildStatus:
+         Deleting file "startNearEnv.dir\Release\startNearEnv.unsuccessfulbuild".
+         Touching "startNearEnv.dir\Release\startNearEnv.lastbuildstate".
+     1>Done Building Project "C:\ProgramsTanis\IIT\VS\RBDemo\nearThingsDetector\build\startNearEnv.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.58

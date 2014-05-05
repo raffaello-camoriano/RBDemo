@@ -1,0 +1,17 @@
+﻿Build started 09/04/2014 17:33:51.
+     1>Project "C:\ProgramsTanis\IIT\VS\RBDemo\nearThingsDetector\build\ZERO_CHECK.vcxproj" on node 2 (build target(s)).
+     1>PrepareForBuild:
+         Creating directory "C:\ProgramsTanis\IIT\VS\RBDemo\nearThingsDetector\build\Debug\".
+       InitializeBuildStatus:
+         Creating "Win32\Debug\ZERO_CHECK\ZERO_CHECK.unsuccessfulbuild" because "AlwaysCreate" was specified.
+       CustomBuild:
+         Checking Build System
+         CMake does not need to re-run because C:/ProgramsTanis/IIT/VS/RBDemo/nearThingsDetector/build/CMakeFiles/generate.stamp is up-to-date.
+       FinalizeBuildStatus:
+         Deleting file "Win32\Debug\ZERO_CHECK\ZERO_CHECK.unsuccessfulbuild".
+         Touching "Win32\Debug\ZERO_CHECK\ZERO_CHECK.lastbuildstate".
+     1>Done Building Project "C:\ProgramsTanis\IIT\VS\RBDemo\nearThingsDetector\build\ZERO_CHECK.vcxproj" (build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.82
