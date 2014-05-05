@@ -157,7 +157,7 @@ using namespace iCub::action;
 
 
 /************************************************************************/
-class ExampleModule: public RFModule
+class graspingModule: public RFModule
 {
 protected:
     AFFACTIONPRIMITIVESLAYER *actionL;    // Action list associated to the left hand
@@ -169,7 +169,7 @@ protected:
 
 public:
     /************************************************************************/
-    ExampleModule()
+    graspingModule()
     {
         actionL=NULL;
         actionR=NULL;
@@ -589,6 +589,6 @@ int main(int argc, char *argv[])
     rf.setDefault("name","graspingModule");
     rf.configure(argc,argv);
 
-    ExampleModule mod;
+    graspingModule mod;
     return mod.runModule(rf);
 }
