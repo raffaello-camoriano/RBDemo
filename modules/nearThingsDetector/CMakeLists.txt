@@ -31,9 +31,6 @@ source_group("Source Files" FILES ${source})
 source_group("Header Files" FILES ${header})
 # source_group("IDL Files" FILES ${idl})
 
-add_subdirectory(app)
-
-
 include_directories(#${PCL_INCLUDE_DIRS} 
                     ${CMAKE_SOURCE_DIR} 
                     ${PROJECT_SOURCE_DIR}/include 

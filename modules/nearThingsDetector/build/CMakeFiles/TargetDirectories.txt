@@ -1,3 +1,0 @@
-C:/ProgramsTanis/IIT/VS/RBDemo/nearThingsDetector/build/CMakeFiles/ALL_BUILD.dir
-C:/ProgramsTanis/IIT/VS/RBDemo/nearThingsDetector/build/CMakeFiles/ZERO_CHECK.dir
-C:/ProgramsTanis/IIT/VS/RBDemo/nearThingsDetector/build/CMakeFiles/detectNear.dir

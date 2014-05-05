@@ -17,7 +17,7 @@ void DetectNear::loop()
 	Scalar red = Scalar(0,0,255);
 
 	// Read 3D coords world image
-	//cout << "read world data = "<< endl;
+	//cout << "read                                                                                        world data = "<< endl;
 	ImageOf<PixelRgbFloat> *world  = worldInPort.read();  // read an stereo world image
     if(world == NULL)
         return;
@@ -97,7 +97,7 @@ void DetectNear::loop()
 	threshold(dist3D, zeroMask, 0, 1, 0);							// Create a mask to ignore 0 values
 	Mat mask(disp.size(), CV_8UC1, Scalar(0));						// Perform an AND operation on the two masks and the original
 	multiply(cntMask, zeroMask, mask, 1, CV_8UC1);					// Compute jont mask: pixels within contours and with valid (non-zero) distances 
-	multiply(cntMask, zeroMask, imTest, 255, CV_8UC1);					// Compute jont mask: pixels within contours and with valid (non-zero) distances 
+	multiply(cntMask, zeroMask, imTest, 255, CV_8UC1);				// Compute jont mask: pixels within contours and with valid (non-zero) distances 
 
 	// Compute the average distance of each detected blob
 	//cout << "Computing avg distance of each blob... "<< endl;
