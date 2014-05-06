@@ -1,7 +1,19 @@
 *~
+
+## generic files to ignore
+*.lock
+*.DS_Store
+*.swp
+*.out
+
+## build dirs
+modules/faceDetector/build*/
 main/build*/
-graspingModule/build*/
-reachModule/build*/
-reachModule/test/target_pos_port/build*/
-nearThingsDetector/build
+modules/graspingModule/build*/
+modules/reachModule/build*/
+modules/reachModule/test/target_pos_port/build*/
+modules/nearThingsDetector/build
 *kdev*
+
+## others
+modules/graspingModule/testData*
