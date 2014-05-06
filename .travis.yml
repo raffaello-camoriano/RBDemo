@@ -20,7 +20,7 @@ before_script:
 # Prepare RBDemo build
   - git clone https://github.com/Ommac/RBDemo.git
   - mv RBDemo/ tmp_RBDemo
-  - cd tmp_RBDemo/handCtrl
+  - cd tmp_RBDemo/modules/handCtrl
   - mkdir build
   - cd build/
   - cmake ../src
