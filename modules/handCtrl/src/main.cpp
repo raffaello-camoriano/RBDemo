@@ -187,6 +187,7 @@ public:
         actionR->clearActionsQueue();
 
         bool f;
+        int responseCode;   //Will contain Vocab-encoded response
 
         reply.clear();
 
@@ -198,9 +199,19 @@ public:
             actionL->areFingersInPosition(f);    // Check for obstructing (grasped) objects
             
             if (!f)
-                reply.add(VOCAB4('n','a','c','k'));
+            {
+                //Encode response
+                responseCode = Vocab::encode("nack");
+                reply.addVocab(responseCode);
+                //reply.addVocab(VOCAB4('n','a','c','k'));
+            }
             else
-                reply.add(VOCAB3('a','c','k'));
+            {
+                //Encode response
+                responseCode = Vocab::encode("ack");
+                reply.addVocab(responseCode);
+                //reply.addVocab(VOCAB3('a','c','k'));
+            }
         }
 
         else if (receivedCmd == "open_right_hand")
@@ -210,9 +221,17 @@ public:
             actionR->areFingersInPosition(f);    // Check for obstructing (grasped) objects
             
             if (!f)
-                 reply.add(VOCAB4('n','a','c','k'));
+            {
+                 //Encode response
+                responseCode = Vocab::encode("nack");
+                reply.addVocab(responseCode);
+            }
             else
-                 reply.add(VOCAB3('a','c','k'));
+            {
+                 //Encode response
+                responseCode = Vocab::encode("ack");
+                reply.addVocab(responseCode);
+            }
         }
 
         else if (receivedCmd == "close_right_hand")
@@ -222,9 +241,17 @@ public:
             actionR->areFingersInPosition(f);    // Check for obstructing (grasped) objects
             
             if (!f)
-                 reply.add(VOCAB4('n','a','c','k'));
+            {
+                 //Encode response
+                responseCode = Vocab::encode("nack");
+                reply.addVocab(responseCode);
+            }
             else
-                 reply.add(VOCAB3('a','c','k'));
+            {
+                 //Encode response
+                responseCode = Vocab::encode("ack");
+                reply.addVocab(responseCode);
+            }
         }
 
         else if (receivedCmd == "close_left_hand")
@@ -234,9 +261,17 @@ public:
             actionL->areFingersInPosition(f);    // Check for obstructing (grasped) objects
             
             if (!f)
-                 reply.add(VOCAB4('n','a','c','k'));
+            {
+                 //Encode response
+                responseCode = Vocab::encode("nack");
+                reply.addVocab(responseCode);
+            }
             else
-                 reply.add(VOCAB3('a','c','k'));
+            {
+                 //Encode response
+                responseCode = Vocab::encode("ack");
+                reply.addVocab(responseCode);
+            }
         }
 
         return true;
