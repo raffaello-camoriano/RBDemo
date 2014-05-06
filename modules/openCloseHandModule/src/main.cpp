@@ -179,18 +179,8 @@ public:
     bool respond(const Bottle &      command,
                  Bottle &      reply)
     {
-        char * receivedCmd = new char [command.get(0).asString().length()+1];
-        strcpy (receivedCmd, command.get(0).asString().c_str());
-
-        string receivedCmd = command.get(0).asString().c_str();
-        
-        //OR
-        
+        //string receivedCmd = command.get(0).asString().c_str();
         string receivedCmd = command.get(0).asString();
-        
-        //???
-        
-        
         
         // Stop current motion and clear actions queue
         actionL->stopControl();
@@ -259,7 +249,6 @@ public:
                 //cout<<"Left hand fully closed"<<endl;
         }
 
-        delete [] receivedCmd;
         return true;
     }
 
@@ -342,7 +331,8 @@ public:
         // otherwise calibrate it and save the results
         
         // Left hand
-        Model *modelL; actionL->getGraspModel(modelL);
+        Model *modelL;
+        actionL->getGraspModel(modelL);
         if (modelL!=NULL)
         {
             if (!modelL->isCalibrated())
@@ -362,7 +352,8 @@ public:
         }
 
         // Right hand
-        Model *modelR; actionR->getGraspModel(modelR);
+        Model *modelR;
+        actionR->getGraspModel(modelR);
         if (modelR!=NULL)
         {
             if (!modelR->isCalibrated())
