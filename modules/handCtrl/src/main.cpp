@@ -19,8 +19,6 @@
 /** 
 \defgroup handCtrl
  
-@ingroup icub_module  
- 
 Example of grasping module based upon \ref ActionPrimitives 
 library. 
 
@@ -31,22 +29,26 @@ Author: Raffaello Camoriano
 CopyPolicy: Released under the terms of the GNU GPL v2.0. 
 
 \section intro_sec Description 
-An example module that makes use of \ref ActionPrimitives 
-library in order to perform simple grasping with either of the hands.
- 
+A module that makes use of \ref ActionPrimitives 
+library to open and close either of the hands.
+
+Scenario:
+
 1) Both hands are opened at startup
 
 2) A bottle containing the code of the hand to be closed
 is received
  
 3) The corresponding hand is closed by calling the close_hand sequence
+
+4) The hand is opened again by the user via rpc:i
  
 \section lib_sec Libraries 
 - YARP libraries. 
 - \ref ActionPrimitives library.  
 - \ref SkinDyn library.  
 
-\section parameters_sec Parameters
+#\section parameters_sec Parameters
  
 \section portsa_sec Ports Accessed
 The robot interface is assumed to be operative.
@@ -55,15 +57,16 @@ The robot interface is assumed to be operative.
 Aside from the internal ports created by \ref ActionPrimitives 
 library, we also have: 
  
-- \e /<modName>/handToBeClosed:i receives a bottle containing the code associated to the hand to close
- 
-- \e /<modName>/rpc:i remote procedure call. 
-    Recognized remote commands:
-    -'open_left_hand'
-    -'open_right_hand'
-    -'close_left_hand'
-    -'close_right_hand'
+- \e /handCtrl/handToBeClosed:i receives a bottle containing the code associated to the hand to close
 
+ 
+- \e /handCtrl/rpc:i remote procedure call.
+
+Recognized remote commands:
+    - 'open_left_hand'
+    - 'open_right_hand'
+    - 'close_left_hand'
+    - 'close_right_hand'
 
 \section in_files_sec Input Data Files
 None.
@@ -76,11 +79,15 @@ None.
 - specify the grasp model type according to the \ref 
   ActionPrimitives documentation.
  
---grasp_model_file \e file 
+--grasp_model_left_file \e file 
 - specify the path to the file containing the grasp model 
-  options.
+  options for the left hand.
+
+--grasp_model_right_file \e file 
+- specify the path to the file containing the grasp model 
+  options for the right hand.
  
---hand_sequences_file \e file 
+--handCtrl_hand_sequences_file \e file 
 - specify the path to the file containing the hand motion 
   sequences relative to the current context ( \ref
   ActionPrimitives ).
@@ -536,7 +543,7 @@ int main(int argc, char *argv[])
                                                     // If so, one default option for each hand may be needed.
     rf.setDefault("grasp_model_left_file","grasp_model_left.ini");
     rf.setDefault("grasp_model_right_file","grasp_model_right.ini");
-    rf.setDefault("hand_sequences_file","handCtrl_hand_sequences.ini");
+    rf.setDefault("handCtrl_hand_sequences_file","handCtrl_hand_sequences.ini");
     rf.setDefault("name","handCtrl");
     rf.configure(argc,argv);
 
