@@ -132,6 +132,7 @@ Windows
 #include <yarp/os/Bottle.h>
 #include <yarp/os/BufferedPort.h>
 #include <yarp/sig/Vector.h>
+#include <yarp/os/Vocab.h>
 #include <yarp/math/Math.h>
 #include <yarp/dev/Drivers.h>
 #include <yarp/conf/system.h>
@@ -197,11 +198,9 @@ public:
             actionL->areFingersInPosition(f);    // Check for obstructing (grasped) objects
             
             if (!f)
-                reply.add("Something is impeding left hand!");
-                //cout<<"Something is impeding left hand!"<<endl;
+                reply.add(VOCAB4('n','a','c','k'));
             else
-                reply.add("Left hand fully opened");
-                //cout<<"Left hand fully opened"<<endl;
+                reply.add(VOCAB3('a','c','k'));
         }
 
         else if (receivedCmd == "open_right_hand")
@@ -211,11 +210,9 @@ public:
             actionR->areFingersInPosition(f);    // Check for obstructing (grasped) objects
             
             if (!f)
-                reply.add("Something is impeding right hand!");
-                //cout<<"Something is impeding right hand!"<<endl;
+                 reply.add(VOCAB4('n','a','c','k'));
             else
-                 reply.add("Right hand fully opened");
-                //cout<<"Right hand fully opened"<<endl;
+                 reply.add(VOCAB3('a','c','k'));
         }
 
         else if (receivedCmd == "close_right_hand")
@@ -225,11 +222,9 @@ public:
             actionR->areFingersInPosition(f);    // Check for obstructing (grasped) objects
             
             if (!f)
-                 reply.add("Right hand has grasped something while closing!");
-                //cout<<"Right hand has grasped something while closing!"<<endl;
+                 reply.add(VOCAB4('n','a','c','k'));
             else
-                 reply.add("Right hand fully closed");
-                //cout<<"Right hand fully closed"<<endl;    
+                 reply.add(VOCAB3('a','c','k'));
         }
 
         else if (receivedCmd == "close_left_hand")
@@ -239,11 +234,9 @@ public:
             actionL->areFingersInPosition(f);    // Check for obstructing (grasped) objects
             
             if (!f)
-                 reply.add("Left hand has grasped something while closing!");
-                //cout<<"Left hand has grasped something while closing!"<<endl;
+                 reply.add(VOCAB4('n','a','c','k'));
             else
-                 reply.add("Left hand fully closed");
-                //cout<<"Left hand fully closed"<<endl;
+                 reply.add(VOCAB3('a','c','k'));
         }
 
         return true;
@@ -288,19 +281,14 @@ public:
 
         cout<<"***** Instantiating primitives for left hand"<<endl;
         actionL = new AFFACTIONPRIMITIVESLAYER(optionL);
-        if (!actionL->isValid())
-        {
-            delete actionL;
-            actionL = NULL;
-            return false;
-        }
-
         cout<<"***** Instantiating primitives for right hand"<<endl;
         actionR=new AFFACTIONPRIMITIVESLAYER(optionR);
-        if (!actionR->isValid())
+        if (!actionR->isValid() || !actionL->isValid() )
         {
             delete actionR;
             actionR = NULL;
+            delete actionL;
+            actionL = NULL;
             return false;
         }
         
