@@ -18,3 +18,4 @@ modules/nearThingsDetector/build
 ## others
 modules/handCtrl/testData*
 modules/handCtrl/app*
+modules/handCtrl/CMakeLists_new_template.txt
