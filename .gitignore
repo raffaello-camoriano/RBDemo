@@ -9,11 +9,13 @@
 ## build dirs
 modules/faceDetector/build*/
 main/build*/
-modules/graspingModule/build*/
+modules/handCtrl/build*/
 modules/reachModule/build*/
 modules/reachModule/test/target_pos_port/build*/
 modules/nearThingsDetector/build
 *kdev*
 
 ## others
-modules/graspingModule/testData*
+modules/handCtrl/testData*
+modules/handCtrl/app*
+modules/handCtrl/CMakeLists_new_template.txt

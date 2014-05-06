@@ -17,7 +17,7 @@
 */
 
 /** 
-\defgroup openCloseHandModule
+\defgroup handCtrl
  
 @ingroup icub_module  
  
@@ -156,7 +156,7 @@ using namespace iCub::action;
 
 
 /************************************************************************/
-class openCloseHandModule: public RFModule
+class handCtrl: public RFModule
 {
 protected:
     AFFACTIONPRIMITIVESLAYER *actionL;    // Action list associated to the left hand
@@ -168,7 +168,7 @@ protected:
 
 public:
     /************************************************************************/
-    openCloseHandModule()
+    handCtrl()
     {
         actionL=NULL;
         actionR=NULL;
@@ -178,8 +178,7 @@ public:
     bool respond(const Bottle &      command,
                  Bottle &      reply)
     {
-        //string receivedCmd = command.get(0).asString().c_str();
-        string receivedCmd = command.get(0).asString();
+        string receivedCmd = command.get(0).asString().c_str();
         
         // Stop current motion and clear actions queue
         actionL->stopControl();
@@ -231,7 +230,7 @@ public:
                 //cout<<"Right hand has grasped something while closing!"<<endl;
             else
                  reply.add("Right hand fully closed");
-                //cout<<"Right hand fully closed"<<endl;
+                //cout<<"Right hand fully closed"<<endl;    
         }
 
         else if (receivedCmd == "close_left_hand")
@@ -532,15 +531,15 @@ int main(int argc, char *argv[])
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultConfigFile("config.ini");
-    rf.setDefaultContext("openCloseHandModule");
+    rf.setDefaultContext("handCtrl");
     rf.setDefault("grasp_model_type","tactile");    // Check this parameter, does it correspond to the one stored in grasp_model_* -> name?
                                                     // If so, one default option for each hand may be needed.
     rf.setDefault("grasp_model_left_file","grasp_model_left.ini");
     rf.setDefault("grasp_model_right_file","grasp_model_right.ini");
     rf.setDefault("hand_sequences_file","hand_sequences.ini");
-    rf.setDefault("name","openCloseHandModule");
+    rf.setDefault("name","handCtrl");
     rf.configure(argc,argv);
 
-    openCloseHandModule mod;
+    handCtrl mod;
     return mod.runModule(rf);
 }
