@@ -23,7 +23,7 @@ before_script:
   - cd tmp_RBDemo/modules/handCtrl
   - mkdir build
   - cd build/
-  - cmake ../src
+  - cmake ..
 
 # How to set the cmake configuration options?
 # ??? cmake -DCMAKE_INSTALL_PREFIX="./local_install" -DCMAKE_BUILD_TYPE=${CODYCO_TRAVIS_BUILD_TYPE} ..
