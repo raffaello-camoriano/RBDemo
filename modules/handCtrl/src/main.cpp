@@ -178,8 +178,7 @@ public:
     bool respond(const Bottle &      command,
                  Bottle &      reply)
     {
-        //string receivedCmd = command.get(0).asString().c_str();
-        string receivedCmd = command.get(0).asString();
+        string receivedCmd = command.get(0).asString().c_str();
         
         // Stop current motion and clear actions queue
         actionL->stopControl();
@@ -231,7 +230,7 @@ public:
                 //cout<<"Right hand has grasped something while closing!"<<endl;
             else
                  reply.add("Right hand fully closed");
-                //cout<<"Right hand fully closed"<<endl;
+                //cout<<"Right hand fully closed"<<endl;    
         }
 
         else if (receivedCmd == "close_left_hand")
