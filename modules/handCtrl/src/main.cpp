@@ -1,5 +1,5 @@
 /* 
- * Copyright (C) 2010 RobotCub Consortium, European Commission FP6 Project IST-004370
+ * Copyright (C) 2014 iCub Facility - Istituto Italiano di Tecnologia
  * Author: Raffaello Camoriano
  * email: raffaello.camoriano@iit.it
  * website: www.robotcub.org
@@ -113,14 +113,6 @@ torso_yaw                       on
 torso_pitch_max                 30.0 
 tracking_mode                   off 
 verbosity                       on 
- 
-[arm_dependent]
-grasp_orientation               (-0.171542 0.124396 -0.977292 3.058211)
-grasp_displacement              (0.0 0.0 0.05)
-systematic_error_displacement   (-0.03 -0.07 -0.02)
-lifting_displacement            (0.0 0.0 0.2)
-home_position                   (-0.29 -0.21 0.11)
-home_orientation                (-0.029976 0.763076 -0.645613 2.884471) 
 \endcode 
 
 \section tested_os_sec Tested OS
@@ -453,16 +445,15 @@ public:
             // Get the code of the hand to be closed
             handSide = static_cast<iCub::skinDynLib::SkinPart>(b->get(0).asInt());
 
-/*        NOTE: We are using the following enums from iCub/skinDynLib/common.h
-
-        enum SkinPart { 
-            SKIN_PART_UNKNOWN=0, 
-            SKIN_LEFT_HAND, SKIN_LEFT_FOREARM, SKIN_LEFT_UPPER_ARM, 
-            SKIN_RIGHT_HAND, SKIN_RIGHT_FOREARM, SKIN_RIGHT_UPPER_ARM, 
-            SKIN_FRONT_TORSO, 
-            SKIN_PART_ALL, SKIN_PART_SIZE
-        };
-*/
+            /*        NOTE: We are using the following enums from iCub/skinDynLib/common.h
+            enum SkinPart { 
+               SKIN_PART_UNKNOWN=0, 
+               SKIN_LEFT_HAND, SKIN_LEFT_FOREARM, SKIN_LEFT_UPPER_ARM, 
+               SKIN_RIGHT_HAND, SKIN_RIGHT_FOREARM, SKIN_RIGHT_UPPER_ARM, 
+                SKIN_FRONT_TORSO, 
+                SKIN_PART_ALL, SKIN_PART_SIZE
+            };
+            */
 
             // grasp with either of the hands (wait until it's done)
 
@@ -543,7 +534,7 @@ int main(int argc, char *argv[])
                                                     // If so, one default option for each hand may be needed.
     rf.setDefault("grasp_model_left_file","grasp_model_left.ini");
     rf.setDefault("grasp_model_right_file","grasp_model_right.ini");
-    rf.setDefault("handCtrl_hand_sequences_file","handCtrl_hand_sequences.ini");
+    rf.setDefault("hand_sequences_file","handCtrl_hand_sequences.ini");
     rf.setDefault("name","handCtrl");
     rf.configure(argc,argv);
 
