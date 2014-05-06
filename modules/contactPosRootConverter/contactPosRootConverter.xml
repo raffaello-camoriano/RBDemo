@@ -1,0 +1,26 @@
+<application>
+
+	<name>contactPosRootConverter</name>
+	<description>Receives a contact and converts its position from link to root RF</description>
+	
+	<authors>
+		<author email="giulia.pasquale@iit.it">Giulia Pasquale</author>
+	</authors>
+	
+	<dependencies>
+		<port>/skinManager/skin_events:o</port>
+	</dependencies>
+
+	<module>
+		<name>contactPosRootConverter</name>
+		<node>localhost</node>
+		<tag>contactPosRootConverterTag</tag>
+	</module>
+
+	<connection>
+		<from>/skinManager/skin_events:o</from>
+		<to>/contactPosRootConverter/contacts:i</to>
+		<protocol>tcp</protocol>
+	</connection>
+
+</application>
