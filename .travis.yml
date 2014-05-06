@@ -20,10 +20,10 @@ before_script:
 # Prepare RBDemo build
   - git clone https://github.com/Ommac/RBDemo.git
   - mv RBDemo/ tmp_RBDemo
-  - cd tmp_RBDemo/graspingModule/
+  - cd tmp_RBDemo/handCtrl
   - mkdir build
   - cd build/
-  - cmake ../
+  - cmake ../src
 
 # How to set the cmake configuration options?
 # ??? cmake -DCMAKE_INSTALL_PREFIX="./local_install" -DCMAKE_BUILD_TYPE=${CODYCO_TRAVIS_BUILD_TYPE} ..
