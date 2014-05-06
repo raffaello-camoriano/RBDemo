@@ -57,7 +57,7 @@ library, we also have:
  
 - \e /<modName>/handToBeClosed:i receives a bottle containing the code associated to the hand to close
  
-- \e /<modName>/rpc remote procedure call. 
+- \e /<modName>/rpc:i remote procedure call. 
     Recognized remote commands:
     -'open_left_hand'
     -'open_right_hand'
@@ -321,7 +321,7 @@ public:
         string fwslash="/";
         inPort.open((fwslash+name+"/handToBeClosed:i").c_str());
         cout << "inPort opened" << endl;
-        rpcPort.open((fwslash+name+"/rpc").c_str());
+        rpcPort.open((fwslash+name+"/rpc:i").c_str());
         cout << "rpcPort opened" << endl;
 
         // Attach rpcPort to the respond() method
@@ -530,13 +530,13 @@ int main(int argc, char *argv[])
 
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultConfigFile("config.ini");
+    rf.setDefaultConfigFile("handCtrl_config.ini");
     rf.setDefaultContext("handCtrl");
     rf.setDefault("grasp_model_type","tactile");    // Check this parameter, does it correspond to the one stored in grasp_model_* -> name?
                                                     // If so, one default option for each hand may be needed.
     rf.setDefault("grasp_model_left_file","grasp_model_left.ini");
     rf.setDefault("grasp_model_right_file","grasp_model_right.ini");
-    rf.setDefault("hand_sequences_file","hand_sequences.ini");
+    rf.setDefault("hand_sequences_file","handCtrl_hand_sequences.ini");
     rf.setDefault("name","handCtrl");
     rf.configure(argc,argv);
 
