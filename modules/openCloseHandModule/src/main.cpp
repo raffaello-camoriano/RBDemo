@@ -135,12 +135,10 @@ Windows
 #include <yarp/sig/Vector.h>
 #include <yarp/math/Math.h>
 #include <yarp/dev/Drivers.h>
+#include <yarp/conf/system.h>
 #include <iCub/perception/models.h>
 #include <iCub/action/actionPrimitives.h>
 #include <iCub/skinDynLib/common.h>            // Common skin parts codes
-
-//#define USE_LEFT    0
-//#define USE_RIGHT   1
 
 #define AFFACTIONPRIMITIVESLAYER    ActionPrimitivesLayer1
 
@@ -154,6 +152,7 @@ using namespace yarp::math;
 using namespace iCub::perception;
 using namespace iCub::action;
 //using namespace iCub::skinDynLib;
+
 
 
 /************************************************************************/
@@ -192,7 +191,7 @@ public:
 
         reply.clear();
 
-        if receivedCmd == "open_left_hand"
+        if (receivedCmd == "open_left_hand")
         {
 
             actionL->pushAction("open_hand");
@@ -207,7 +206,7 @@ public:
                 //cout<<"Left hand fully opened"<<endl;
         }
 
-        else if receivedCmd == "open_right_hand"
+        else if (receivedCmd == "open_right_hand")
         {
             actionR->pushAction("open_hand");
             actionR->checkActionsDone(f,true);
@@ -221,7 +220,7 @@ public:
                 //cout<<"Right hand fully opened"<<endl;
         }
 
-        else if receivedCmd == "close_right_hand"
+        else if (receivedCmd == "close_right_hand")
         {
             actionR->pushAction("close_hand");
             actionR->checkActionsDone(f,true);
@@ -235,7 +234,7 @@ public:
                 //cout<<"Right hand fully closed"<<endl;
         }
 
-        else if receivedCmd == "close_left_hand"
+        else if (receivedCmd == "close_left_hand")
         {
             actionL->pushAction("close_hand");
             actionL->checkActionsDone(f,true);
@@ -294,6 +293,7 @@ public:
         if (!actionL->isValid())
         {
             delete actionL;
+            actionL = NULL;
             return false;
         }
 
@@ -302,6 +302,7 @@ public:
         if (!actionR->isValid())
         {
             delete actionR;
+            actionR = NULL;
             return false;
         }
         
@@ -327,7 +328,7 @@ public:
         // Attach rpcPort to the respond() method
         attach(rpcPort);
         
-        // check whether the grasp model is calibrated,
+        // Check whether the grasp model is calibrated,
         // otherwise calibrate it and save the results
         
         // Left hand
@@ -379,11 +380,17 @@ public:
     bool close()
     {
         if (actionL!=NULL)
+        {
             delete actionL;
-            
+            actionL = NULL;
+        }
+         
         if (actionR!=NULL)
+        {
             delete actionR;
-
+            actionR = NULL;
+        }
+        
         // Close ports
         inPort.close();
         cout << "inPort closed" << endl;
