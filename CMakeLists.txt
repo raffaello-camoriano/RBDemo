@@ -28,6 +28,7 @@ include(YarpInstallationHelpers)   # pick up yarp's cmake scripts
 
 
 ## add modules
+add_subdirectory(modules)
 
 add_subdirectory(disparityComp)
 add_subdirectory(faceDetector)

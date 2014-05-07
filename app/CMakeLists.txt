@@ -8,5 +8,5 @@ file(GLOB scripts ${CMAKE_CURRENT_SOURCE_DIR}/scripts/*.xml)
 file(GLOB conf    ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.ini)
                  
 ### create a single target that installs all applications at once
-yarp_install(FILES ${conf} DESTINATION ${ICUBCONTRIB_CONTEXTS_INSTALL_DIR}/BRDemo)
+yarp_install(FILES ${conf} DESTINATION ${ICUBCONTRIB_CONTEXTS_INSTALL_DIR}/RBDemo)
 yarp_install(FILES ${scripts} DESTINATION ${ICUBCONTRIB_APPLICATIONS_TEMPLATES_INSTALL_DIR})
