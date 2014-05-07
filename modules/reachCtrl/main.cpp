@@ -17,7 +17,7 @@
 
 
 /** 
-\defgroup reachModule
+\defgroup reachCtrl
  
 @ingroup icub_module  
  
@@ -53,7 +53,7 @@ Cartesian interface is required.
 
 Input ports
 - \e /<modName>/reachingTarget:i receives a bottle containing three coordinates of the point to be reached in robot root FoR
-- \e /<modName>/reachModule/rpc can be used to issue the targets for the robot in the format "go x y z"; the "home" command is also recognized 
+- \e /<modName>/reachCtrl/rpc can be used to issue the targets for the robot in the format "go x y z"; the "home" command is also recognized 
 
 Output ports
 - \e /<modName>/handToBeClosed:o sends an int derived from the SkinPart enum class - SKIN_LEFT_HAND == 1 or SKIN_RIGHT_HAND == 4
@@ -123,7 +123,7 @@ SKIN_PART_ALL, SKIN_PART_SIZE
  using namespace iCub::skinDynLib;
 #endif
 
-class reachingThread: public RateThread
+class reachCtrlThread: public RateThread
 {
 protected:
     ResourceFinder &rf;
@@ -625,7 +625,7 @@ protected:
     }
     
 public:
-    reachingThread(const string &_name, ResourceFinder &_rf) : 
+    reachCtrlThread(const string &_name, ResourceFinder &_rf) : 
                   RateThread(DEFAULT_THR_PER), name(_name), rf(_rf)
     {        
         drvTorso=drvLeftArm=drvRightArm=NULL;
@@ -1022,18 +1022,18 @@ public:
 };
 
 
-class reachingModule: public RFModule
+class reachCtrlModule: public RFModule
 {
 protected:
-    reachingThread *thr;    
+    reachCtrlThread *thr;    
     Port           rpcPort;
 
 public:
-    reachingModule() { }
+    reachCtrlModule() { }
 
     bool configure(ResourceFinder &rf)
     {
-        thr=new reachingThread(getName().c_str(),rf);
+        thr=new reachCtrlThread(getName().c_str(),rf);
         if (!thr->start())
         {
             delete thr;    
@@ -1140,13 +1140,13 @@ int main(int argc, char *argv[])
     
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultContext("reachModule");
+    rf.setDefaultContext("reachCtrl");
     rf.setDefaultConfigFile("reachConfig.ini");
     rf.configure(argc,argv);
 
-    reachingModule mod;
-    mod.setName("/reachModule");
+    reachCtrlModule mod;
+    mod.setName("/reachCtrl");
     
-    cout << "Configuring and starting reaching module. \n";
+    cout << "Configuring and starting reachCtrl module. \n";
     return mod.runModule(rf);
 }
