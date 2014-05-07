@@ -166,6 +166,10 @@ protected:
 
     bool firstRun;
 
+    // Timeout for the hands to open after a closure required via inPort
+    double leftHandTimeOut;
+    double rightHandTimeOut;
+
 public:
     /************************************************************************/
     handCtrl()
@@ -173,6 +177,9 @@ public:
         actionL=NULL;
         actionR=NULL;
         firstRun=true;
+
+        leftHandTimeOut = 5.0;
+        rightHandTimeOut = 5.0;
     }
 
     bool respond(const Bottle &      command,
@@ -294,6 +301,10 @@ public:
 
             return false;
         }
+
+        // Set closure timeouts
+        leftHandTimeOut = bGeneral.find("closure_timeout_left").asDouble();
+        rightHandTimeOut = bGeneral.find("closure_timeout_right").asDouble();
 
         // Parsing general config options for both hands
 
@@ -493,7 +504,7 @@ public:
                 actionL->pushAction("close_hand");
                 actionL->checkActionsDone(fl,true);
                 actionL->areFingersInPosition(fl);    // Check for obstructing (grasped) objects
-                actionL->pushWaitState(5);      // Wait 5 seconds
+                actionL->pushWaitState(leftHandTimeOut);      // Wait $leftHandTimeOut seconds
                 actionL->pushAction("open_hand");
                 actionL->checkActionsDone(fl,true);
                 actionL->areFingersInPosition(fl);    // Check for obstructing (grasped) objects
@@ -502,6 +513,10 @@ public:
             {
                 // Right hand
                 actionR->pushAction("close_hand");
+                actionR->checkActionsDone(fr,true);
+                actionR->areFingersInPosition(fr);    // Check for obstructing (grasped) objects
+                actionR->pushWaitState(rightHandTimeOut);      // Wait $rightHandTimeOut seconds
+                actionR->pushAction("open_hand");
                 actionR->checkActionsDone(fr,true);
                 actionR->areFingersInPosition(fr);    // Check for obstructing (grasped) objects
             }
