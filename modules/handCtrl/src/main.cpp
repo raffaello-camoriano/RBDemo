@@ -367,7 +367,7 @@ public:
                 cout << "DEBUG ################### modelL is not calibrated" << endl;
                 Property prop("(finger all_parallel)");
                 modelL->calibrate(prop);
-
+                cout << "DEBUG ################### Tried to calibrate..." << endl;
                 string fileName=rf.getHomeContextPath();
                 fileName+="/";
                 fileName+=optionL.find("grasp_model_left_file").asString().c_str();
