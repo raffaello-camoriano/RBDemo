@@ -178,6 +178,9 @@ public:
     bool respond(const Bottle &      command,
                  Bottle &      reply)
     {
+        // This method is called when a command string is sent via RPC
+
+        // Get command string
         string receivedCmd = command.get(0).asString().c_str();
         
         // Stop current motion and clear actions queue
@@ -189,7 +192,7 @@ public:
         bool f;
         int responseCode;   //Will contain Vocab-encoded response
 
-        reply.clear();
+        reply.clear();  // Clear reply bottle
 
         if (receivedCmd == "open_left_hand")
         {
@@ -292,7 +295,7 @@ public:
             return false;
         }
 
-        // parsing general config options
+        // Parsing general config options for both hands
 
         Property optionL(bGeneral.toString().c_str());    // Left
         optionL.put("local",name.c_str());    //module name
@@ -364,7 +367,7 @@ public:
 
                 string fileName=rf.getHomeContextPath();
                 fileName+="/";
-                fileName+=optionL.find("grasp_model_file_left").asString().c_str();
+                fileName+=optionL.find("grasp_model_left_file").asString().c_str();
 
                 ofstream fout;
                 fout.open(fileName.c_str());
@@ -385,7 +388,7 @@ public:
 
                 string fileName=rf.getHomeContextPath();
                 fileName+="/";
-                fileName+=optionR.find("grasp_model_file_right").asString().c_str();
+                fileName+=optionR.find("grasp_model_right_file").asString().c_str();
 
                 ofstream fout;
                 fout.open(fileName.c_str());
