@@ -1,7 +1,7 @@
 <module>
     <!-- module's name should match its executable file's name. -->
     <name>nearThingsDetector</name>
-    <description>Uses 3D and disparity information to find the ditance of the  closest object</description>
+    <description>Uses 3D and disparity information to find the distance of the  closest object</description>
     <version>1.0</version>
 
     <!-- <arguments> can have multiple <param> tags-->

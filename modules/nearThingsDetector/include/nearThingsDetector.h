@@ -46,31 +46,30 @@ class NearThingsDetector : public yarp::os::BufferedPort<yarp::sig::ImageOf<yarp
 private:
 
     std::string moduleName;                     //string containing module name
-	std::string worldInPortName;                //string containing world in info port name
-	std::string dispInPortName;                 //string containing disparity image port name
-	std::string targetOutPortName;              //string containing output target port name
-	std::string imageOutPortName;               //string containing output image port name
-
-	yarp::os::Port									rpcPort;							// rpc port (receive commands via rpc), returns bounding box of selected blob
-	yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgbFloat> > worldInPort;	// input Port with info of 3D world
-	//yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> >	dispInPort;		// Receives disparity greyscale image
-	yarp::os::BufferedPort<yarp::os::Bottle>							targetOutPort;	// Send coordinates of closest point.
+    std::string worldInPortName;                //string containing world in info port name
+    std::string dispInPortName;                 //string containing disparity image port name
+    std::string targetOutPortName;              //string containing output target port name
+    std::string imageOutPortName;               //string containing output image port name
+    
+    yarp::os::Port									rpcPort;							// rpc port (receive commands via rpc), returns bounding box of selected blob
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgbFloat> > worldInPort;	// input Port with info of 3D world
+    //yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> >	dispInPort;		// Receives disparity greyscale image
+    yarp::os::BufferedPort<yarp::os::Bottle>							targetOutPort;	// Send coordinates of closest point.
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> >	imageOutPort;	// output image Port with info drawn over  
 
-	/* Pointer to the RF module */
-	yarp::os::ResourceFinder *moduleRF;
+    /* Pointer to the RF module */
+    yarp::os::ResourceFinder *moduleRF;
 
-	/* Algorithm Variables */
-	int backgroundThresh;
-	int cannyThresh;
-	int minBlobSize;
-
-	int dispThreshRatioLow;
-	int dispThreshRatioHigh;
-
-	int gaussSize;
-	float range;
-
+    /* Algorithm Variables */
+    int backgroundThresh;
+    int cannyThresh;
+    int minBlobSize;
+    
+    int dispThreshRatioLow;
+    int dispThreshRatioHigh;
+    
+    int gaussSize;
+    float range;
 	
 public:
     /**
@@ -79,16 +78,14 @@ public:
      */
     NearThingsDetector( const std::string &moduleName, yarp::os::ResourceFinder &module );
     ~NearThingsDetector();
-
+    
     bool        open();
     void        close();
     void        onRead( yarp::sig::ImageOf<yarp::sig::PixelBgr> &img );
     void        interrupt();
-
+    
     yarp::os::Semaphore         mutex;          //semaphore for accessing/modifying within the callback
-
-    cv::Mat                     frame;
-
+       
 };
 
 class NearDetectorModule:public yarp::os::RFModule
@@ -101,7 +98,6 @@ class NearDetectorModule:public yarp::os::RFModule
     /* pointer to a new thread */
     NearThingsDetector      *detector;
     bool                    closing;
-
 
 public:
 
