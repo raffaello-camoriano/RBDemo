@@ -102,7 +102,7 @@ should look like as follows:
 \code 
 [general]
 // options used to open a ActionPrimitives object 
-robot                           icubSim
+robot                           icub
 thread_period                   50
 default_exec_time               3.0
 reach_tol                       0.007

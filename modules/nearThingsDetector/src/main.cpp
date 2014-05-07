@@ -62,6 +62,26 @@ None.
 \section out_data_sec Output Data Files 
 None. 
 
+\section conf_file_sec Configuration Files 
+--from \e file 
+- specify the configuration file (use \e --context option to 
+  select the current context).
+
+  The configuration file passed through the option \e --from
+should look like as follows:
+ 
+\code 
+name                nearThingsDetector
+robot               icub
+range               0.5
+backgroundThresh    50
+cannyThresh         20
+minBlobSize         400
+gaussSize           5
+dispThreshRatioLow  10
+dispThreshRatioHigh 20
+\endcode 
+
 \section tested_os_sec Tested OS
 Linux, Windows
 
