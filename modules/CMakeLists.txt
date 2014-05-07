@@ -6,5 +6,5 @@
 ##add_subdirectory(faceDetector)
 #add_subdirectory(handCtrl)
 add_subdirectory(nearThingsDetector)
-#add_subdirectory(reachModule)
+add_subdirectory(reachCtrl)
 

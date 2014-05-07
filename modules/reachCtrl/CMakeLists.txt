@@ -2,7 +2,7 @@
 # Author: Matej Hoffmann
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.6)
 
 SET(PROJECTNAME reachCtrl)
 
@@ -19,3 +19,5 @@ ADD_EXECUTABLE(${PROJECTNAME} ${folder_source})
 
 TARGET_LINK_LIBRARIES(${PROJECTNAME}  icubmod
                                      ${YARP_LIBRARIES})
+                                     
+install(TARGETS ${PROJECTNAME} DESTINATION bin)
