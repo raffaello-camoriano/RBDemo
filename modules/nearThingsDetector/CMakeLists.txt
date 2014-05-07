@@ -1,5 +1,5 @@
-# Copyright: 2012 iCub Facility, Istituto Italiano di Tecnologia
-# Author: Vadim Tikhanoff
+# Copyright: 2014 iCub Facility, Istituto Italiano di Tecnologia
+# Author: Tanis Mar
 # CopyPolicy: Released under the terms of the GNU GPL v2.0.
 # 
 
@@ -7,20 +7,7 @@ CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 SET(PROJECTNAME nearThingsDetector)
 PROJECT(${PROJECTNAME})
 
-find_package(YARP)
-find_package(ICUB)
-find_package(ICUBcontrib)
-
-list(APPEND CMAKE_MODULE_PATH ${YARP_MODULE_PATH})
-list(APPEND CMAKE_MODULE_PATH ${ICUB_MODULE_PATH})
-list(APPEND CMAKE_MODULE_PATH ${ICUBCONTRIB_MODULE_PATH})
-
 find_package(OpenCV)
-
-include(YarpInstallationHelpers)
-include(ICUBcontribHelpers)
-include(ICUBcontribOptions)
-icubcontrib_set_default_prefix()
 
 file(GLOB source src/*.cpp)
 file(GLOB header include/*.h)
@@ -30,7 +17,7 @@ source_group("Header Files" FILES ${header})
 
 include_directories(${PROJECT_SOURCE_DIR}/include
                     ${YARP_INCLUDE_DIRS}
-                    ${ICUB_INCLUDE_DIRS}
+                    #${ICUB_INCLUDE_DIRS}
                     ${OpenCV_INCLUDE_DIRS}
                     )
 
