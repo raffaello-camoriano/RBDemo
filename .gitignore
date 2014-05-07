@@ -10,8 +10,8 @@
 modules/faceDetector/build*/
 main/build*/
 modules/handCtrl/build*/
-modules/reachModule/build*/
-modules/reachModule/test/target_pos_port/build*/
+modules/reachCtrl/build*/
+modules/reachCtrl/test/target_pos_port/build*/
 modules/nearThingsDetector/build
 *kdev*
 
