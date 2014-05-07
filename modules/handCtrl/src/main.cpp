@@ -362,6 +362,7 @@ public:
         if (modelL!=NULL)
         {
             cout << "DEBUG ################### modelL != NULL" << endl;
+            cout << "modelL->isCalibrated() = " << modelL->isCalibrated() << endl;
             if (!modelL->isCalibrated())
             {
                 cout << "DEBUG ################### modelL is not calibrated" << endl;
