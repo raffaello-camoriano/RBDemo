@@ -358,10 +358,13 @@ public:
         // Left hand
         Model *modelL;
         actionL->getGraspModel(modelL);
+        cout << "DEBUG ################### Got graspModel" << endl;
         if (modelL!=NULL)
         {
+            cout << "DEBUG ################### modelL != NULL" << endl;
             if (!modelL->isCalibrated())
             {
+                cout << "DEBUG ################### modelL is not calibrated" << endl;
                 Property prop("(finger all_parallel)");
                 modelL->calibrate(prop);
 
