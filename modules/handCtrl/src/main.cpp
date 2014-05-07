@@ -504,6 +504,7 @@ public:
                 actionL->pushAction("close_hand");
                 actionL->checkActionsDone(fl,true);
                 actionL->areFingersInPosition(fl);    // Check for obstructing (grasped) objects
+                cout << "DEBUG ################ leftHandTimeOut = " << leftHandTimeOut << " seconds" <<endl;
                 actionL->pushWaitState(leftHandTimeOut);      // Wait $leftHandTimeOut seconds
                 actionL->pushAction("open_hand");
                 actionL->checkActionsDone(fl,true);
