@@ -492,7 +492,11 @@ public:
                 // Left hand
                 actionL->pushAction("close_hand");
                 actionL->checkActionsDone(fl,true);
-                actionL->areFingersInPosition(fl);    // Check for obstructing (grasped) objects        
+                actionL->areFingersInPosition(fl);    // Check for obstructing (grasped) objects
+                actionL->pushWaitState(5);      // Wait 5 seconds
+                actionL->pushAction("open_hand");
+                actionL->checkActionsDone(fl,true);
+                actionL->areFingersInPosition(fl);    // Check for obstructing (grasped) objects
             }
             else if ( handSide == iCub::skinDynLib::SKIN_RIGHT_HAND)
             {
