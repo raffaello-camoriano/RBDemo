@@ -303,8 +303,18 @@ public:
         }
 
         // Set closure timeouts
-        leftHandTimeOut = bGeneral.find("closure_timeout_left").asDouble();
-        rightHandTimeOut = bGeneral.find("closure_timeout_right").asDouble();
+        leftHandTimeOut = rf.findGroup("general").find("closure_timeout_left").asDouble();
+        rightHandTimeOut = rf.findGroup("general").find("closure_timeout_right").asDouble();
+
+        // ADD CHECK!!!
+
+        /*
+            USE:
+        virtual Value yarp::os::Searchable::check 	( 	const ConstString &  	key,
+		const Value &  	fallback,
+		const ConstString &  	comment = ""	 
+	    ) 	
+        */
 
         // Parsing general config options for both hands
 
