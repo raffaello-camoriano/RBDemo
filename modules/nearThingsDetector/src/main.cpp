@@ -51,6 +51,9 @@ Input ports
 - \e /<modName>/disp:i receives a BRG image containing the disparity of the image obtained through stereo vision.
 - \e /<modName>/world:i receives a PixelRgbFloat image where the three channels correspond to the X Y Z coordinates of each point in the disparity image
 - \e /<modName>/rpc:i can be used to issue commands to the robot.
+    Recognized remote commands:
+        - 'origin X Y Z' to modify the point in the robot frame from which the distance is computed
+        - 'range R' to set the range considered as reachable by the robot
 
 Output ports
 - \e /<modName>/target:o streams out the center X Y Z coordinates of the closest object.
@@ -73,6 +76,7 @@ should look like as follows:
 \code 
 name                nearThingsDetector
 robot               icub
+origin              0 0 0.2
 range               0.5
 backgroundThresh    50
 cannyThresh         20
@@ -117,3 +121,4 @@ int main(int argc, char * argv[])
     return 0;
 }
 //empty line to make gcc happy
+

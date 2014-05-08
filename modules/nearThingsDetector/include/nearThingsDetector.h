@@ -70,6 +70,7 @@ private:
     
     int gaussSize;
     float range;
+    cv::Scalar origin;
 	
 public:
     /**
@@ -78,6 +79,9 @@ public:
      */
     NearThingsDetector( const std::string &moduleName, yarp::os::ResourceFinder &module );
     ~NearThingsDetector();
+
+    bool setOrigin(std::vector<double> origin);
+    bool setRange(double range);
     
     bool        open();
     void        close();
@@ -107,6 +111,7 @@ public:
 
     double getPeriod();
     bool updateModule();
+    bool respond(const yarp::os::Bottle &command, yarp::os::Bottle &reply);
 };
 
 
