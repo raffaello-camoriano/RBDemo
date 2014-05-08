@@ -1140,8 +1140,8 @@ int main(int argc, char *argv[])
     
     ResourceFinder rf;
     rf.setVerbose(true);
-    rf.setDefaultContext("reachCtrl");
-    rf.setDefaultConfigFile("reachConfig.ini");
+    rf.setDefaultContext("RBDemo");
+    rf.setDefaultConfigFile("reachCtrl.ini");
     rf.configure(argc,argv);
 
     reachCtrlModule mod;
