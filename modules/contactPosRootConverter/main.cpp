@@ -215,11 +215,11 @@ public:
     bool open() {
         
         if (!inPort.open(inPortName.c_str())) {
-            fprintf(stdout, "%s: unable to open port %s\n", name, inPortName.c_str());
+            fprintf(stdout, "%s: unable to open port %s\n", name.c_str(), inPortName.c_str());
             return false;
         }
         if (!outPort.open(outPortName.c_str())) {
-            fprintf(stdout, "%s: unable to open port %s\n", name, outPortName.c_str());
+            fprintf(stdout, "%s: unable to open port %s\n", name.c_str(), outPortName.c_str());
             return false;
         }
         

@@ -8,6 +8,7 @@
 
 ## build dirs
 modules/faceDetector/build*/
+modules/contactPosRootConverter/build*/
 main/build*/
 modules/handCtrl/build*/
 modules/reachCtrl/build*/
