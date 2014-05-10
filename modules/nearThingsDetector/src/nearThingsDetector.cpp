@@ -78,6 +78,50 @@ bool NearDetectorModule::updateModule()
     return !closing;
 }
 
+bool NearDetectorModule::respond(const Bottle &command,Bottle &reply)
+{
+    /* This method is called when a command string is sent via RPC */
+    reply.clear();  // Clear reply bottle
+
+    /* Get command string */
+    string receivedCmd = command.get(0).asString().c_str();
+    int responseCode;   //Will contain Vocab-encoded response
+    if (receivedCmd == "origin"){
+        if (command.size() == 4){
+            vector<double> origCoords(3);
+            for (int i=1; i<=3; i++){
+                origCoords[i-1] = command.get(i).asDouble();            
+            }
+            bool ok = detector->setOrigin(origCoords);
+            if (ok)
+                responseCode = Vocab::encode("ack");
+            else {
+                fprintf(stdout,"Coordinates format not accepted. Try [origin X Y Z]. \n");
+                responseCode = Vocab::encode("nack");
+            }
+        }else
+            responseCode = Vocab::encode("nack");
+        reply.addVocab(responseCode);
+        return true;
+    }
+    else if (receivedCmd == "range"){
+        bool ok = detector->setRange(command.get(1).asDouble());
+        if (ok)
+            responseCode = Vocab::encode("ack");
+        else {
+            fprintf(stdout,"Threshold not set. \n");
+            responseCode = Vocab::encode("nack");
+        }
+        reply.addVocab(responseCode);
+        return true;
+    }
+    fprintf(stdout,"Code not accepted. \n");
+    responseCode = Vocab::encode("nack");
+    reply.addVocab(responseCode);
+
+    return true;
+}
+
 /**********************************************************/
 double NearDetectorModule::getPeriod()
 {
@@ -102,8 +146,17 @@ NearThingsDetector::NearThingsDetector( const string &moduleName, ResourceFinder
 bool NearThingsDetector::open()
 {
     this->useCallback();
-    fprintf(stdout,"Opening ports\n");	
+    fprintf(stdout,"Parsing parameters\n");	
 
+    Bottle originFrame = moduleRF->findGroup("origin");    
+    if (originFrame.size()>0){
+        for (int i=0; i<originFrame.size(); i++)
+            origin[i] = originFrame.get(i+1).asDouble();
+    }else{
+        origin = Scalar(0,0,0);
+    }
+    fprintf(stdout,"Frame used : [%.2f,%.2f,%.2f]\n", origin[0], origin[1], origin[2] );	
+    //cout << "Frame used "<< origin << endl;
     range = moduleRF->check("range", Value(0.5)).asDouble();
     backgroundThresh = moduleRF->check("backgroundThresh", Value(50)).asInt();		// threshold of intensity if the disparity image, under which info is ignored.
     cannyThresh = moduleRF->check("cannyThresh", Value(20)).asDouble();
@@ -114,6 +167,7 @@ bool NearThingsDetector::open()
     
     bool ret=true;
     //create all ports
+    fprintf(stdout,"Opening ports\n");	
     dispInPortName = "/" + moduleName + "/disp:i";
     BufferedPort<ImageOf<PixelBgr>  >::open( dispInPortName.c_str() );
     
@@ -155,13 +209,39 @@ void NearThingsDetector::interrupt()
     fprintf(stdout,"finished interrupt ports\n");
 }
 
+bool NearThingsDetector::setOrigin(vector<double> o)
+{   
+    if (o.size()!=3){
+        fprintf(stdout,"Coordinates format not valid, origin not modified. \n");
+        return false;
+    }
+
+    for (int i=0; i<o.size(); i++)
+        this->origin[i] = o[i];
+    fprintf(stdout,"New origin Coords are : [%.2f,%.2f,%.2f]\n", origin[0], origin[1], origin[2] );
+    //cout << "New origin Coords" << origin << endl;
+    return true;
+}
+
+bool NearThingsDetector::setRange(double r)
+{
+    if (r<0.1){
+        fprintf(stdout,"Range is too small. \n");
+        return false;
+    }
+    fprintf(stdout,"New Range is : %.2f\n", r);
+    //cout << "New range is " << r << endl;
+    this->range = r;
+    return true;
+}
+
 /**********************************************************/
 void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
 {
     yarp::os::Stamp ts;
     
     mutex.wait();
-    
+    cout << endl;
     cout << "================ LOOP =================== "<< endl;
     Scalar blue = Scalar(255,0,0);
     Scalar green = Scalar(0,255,0);
@@ -187,7 +267,6 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
     target.clear();
 
     /* Filter disparity image to reduce noise */
-    cout << "Filtering image to reduce noise... "<< endl;
     GaussianBlur(disp, disp, Size(gaussSize,gaussSize), 1.5, 1.5);
     Mat threshIm;
     threshold(disp, threshIm, backgroundThresh, 1, CV_THRESH_BINARY);			// First
@@ -206,7 +285,6 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
         minMaxLoc( aux, &minVal, &maxVal, &minLoc, &maxLoc );		// Look for brighter (closest) blob
         fillSize = floodFill(aux, maxLoc, 0, 0, Scalar(maxVal/dispThreshRatioLow), Scalar(maxVal/dispThreshRatioHigh),FLOODFILL_FIXED_RANGE);	// If its too small, paint it black and search again
     }
-    cout << "Max luminance value found is  " << maxVal << endl;
     floodFill(disp, maxLoc, 255, 0, Scalar(maxVal/dispThreshRatioLow), Scalar(maxVal/dispThreshRatioHigh), FLOODFILL_FIXED_RANGE);	// Paint closest valid blob white
     threshold(disp, disp, 250, 255, CV_THRESH_BINARY);
     
@@ -224,14 +302,12 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
         drawContours( imOut, contours, -1, blue, 2, 8); 
         
         /* Compute euclidean distance of all points matrixwise as sqrt(ch0^2+ch1^2+ch2^2). */
-        cout << "Computing 3D distance from world data... "<< endl;
         Mat dist3D;
         vector<Mat> channels(3);	
-        split(worldImg, channels);						// split image into its channels X Y Z
+        split(worldImg-origin, channels);						// split image into its channels X Y Z
         sqrt(channels[0].mul(channels[0])+channels[1].mul(channels[1])+channels[2].mul(channels[2]), dist3D);	
     
         /* Create a mask to ignore all points with non valid information (zero distance or out of contour). */
-        cout << "Creating mask to keep valid distance data... "<< endl;
         Mat cntMask(disp.size(), CV_8UC1, Scalar(0));					// do a mask by using drawContours (-1) on another black image
         drawContours( cntMask, contours, -1, Scalar(1), CV_FILLED, 8);	// Mask ignoring points outside the contours
         Mat zeroMask(disp.size(), CV_8UC1, Scalar(0));					// Filter the black pixels from the image as another mask using cv::threshold with THRESH_BINARY and a threshold value of zero
@@ -242,7 +318,7 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
         /* Compute the average distance of each detected blob */
         Mat reachness(disp.size(), CV_8UC3, Scalar(0,0,0));
         Scalar avgDist = mean(dist3D,mask);
-        cout << "Closest blob is at avg distance " << avgDist[0] << endl << endl;
+        cout << "Closest blob is at avg distance " << avgDist[0] << endl;
         if (avgDist[0] > range){
             drawContours( reachness, contours, -1, red, CV_FILLED, 8);		// Paint red far blobs
         }else{
@@ -257,7 +333,6 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
         circle( imOut, center, 4, red, -1, 8, 0 );
         
         /* Get and return valid 3D coords of the blob */
-        cout << "Getting 3D coords of center " << endl;
         Scalar centerCoords = mean(worldImg, mask);			// Accpount only for coords where worldImg data is valid
         
         cout << "coords of the center of closest blob are : " << centerCoords[0] << ", "<< centerCoords[1]  << ", "<< centerCoords[2] << endl;
