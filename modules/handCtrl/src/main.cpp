@@ -499,53 +499,87 @@ public:
             /*        NOTE: We are using the following enums from iCub/skinDynLib/common.h
             enum SkinPart { 
                SKIN_PART_UNKNOWN=0, 
-               SKIN_LEFT_HAND, SKIN_LEFT_FOREARM, SKIN_LEFT_UPPER_ARM, 
-               SKIN_RIGHT_HAND, SKIN_RIGHT_FOREARM, SKIN_RIGHT_UPPER_ARM, 
-                SKIN_FRONT_TORSO, 
-                SKIN_PART_ALL, SKIN_PART_SIZE
+               SKIN_LEFT_HAND,
+               SKIN_LEFT_FOREARM,
+               SKIN_LEFT_UPPER_ARM, 
+               SKIN_RIGHT_HAND,
+               SKIN_RIGHT_FOREARM,
+               SKIN_RIGHT_UPPER_ARM, 
+               SKIN_FRONT_TORSO, 
+               SKIN_PART_ALL,
+               SKIN_PART_SIZE
             };
             */
 
-            // grasp with either of the hands (wait until it's done)
+            // Grasp with either of the hands (wait until it's done)
 
-            if ( handSide == iCub::skinDynLib::SKIN_LEFT_HAND)
+            if ( handSide == iCub::skinDynLib::SKIN_LEFT_HAND)  // Left hand
             {
-                // Left hand
+                // Push closure action and wait for completion
                 actionL->pushAction("close_hand");
                 actionL->checkActionsDone(fl,true);
-                actionL->areFingersInPosition(fl);    // Check for obstructing (grasped) objects
-                actionL->pushWaitState(leftHandTimeOut);      // Wait $leftHandTimeOut seconds
+
+                // Check for obstructing (grasped) objects
+                actionL->areFingersInPosition(fl);
+                
+                // If fingers are not in position,
+                // it's likely that we've just grasped
+                // something, so print it!
+                if (!fl)
+                    cout<<"Left hand obstructed while closing"<<endl;
+                else
+                    cout<<"Left hand fully closed"<<endl;
+            
+                // Wait $leftHandTimeOut seconds
+                actionL->pushWaitState(leftHandTimeOut);    
+                
+                // Push opening action and wait for completion
                 actionL->pushAction("open_hand");
                 actionL->checkActionsDone(fl,true);
-                actionL->areFingersInPosition(fl);    // Check for obstructing (grasped) objects
+
+                // Check for obstructing objects
+                actionL->areFingersInPosition(fl);          
+
+                if (!fl)
+                    cout<<"Left hand obstructed while opening"<<endl;
+                else
+                    cout<<"Left hand fully opened"<<endl;
+            
             }
             else if ( handSide == iCub::skinDynLib::SKIN_RIGHT_HAND)
             {
                 // Right hand
                 actionR->pushAction("close_hand");
                 actionR->checkActionsDone(fr,true);
-                actionR->areFingersInPosition(fr);    // Check for obstructing (grasped) objects
-                actionR->pushWaitState(rightHandTimeOut);      // Wait $rightHandTimeOut seconds
+                actionR->areFingersInPosition(fr);          // Check for obstructing (grasped) objects
+
+                // Check for obstructing (grasped) objects
+                actionR->areFingersInPosition(fr);
+                
+                // If fingers are not in position,
+                // it's likely that we've just grasped
+                // something, so print it!
+                if (!fr)
+                    cout<<"Right hand obstructed while closing"<<endl;
+                else
+                    cout<<"Right hand fully closed"<<endl;
+
+                // Wait $rightHandTimeOut seconds
+                actionR->pushWaitState(rightHandTimeOut);   
+                
+                // Push opening action and wait for completion
                 actionR->pushAction("open_hand");
                 actionR->checkActionsDone(fr,true);
-                actionR->areFingersInPosition(fr);    // Check for obstructing (grasped) objects
-            }
 
-            // if fingers are not in position,
-            // it's likely that we've just grasped
-            // something, so print it!
-            
-            // Left
-            if (!fl)
-                cout<<"Wow, got something with left hand!"<<endl;
-            else
-                cout<<"Sorry :( ... nothing to grasp with left hand"<<endl;
-            
-            // Right
-            if (!fr)
-                cout<<"Wow, got something with right hand!"<<endl;
-            else
-                cout<<"Sorry :( ... nothing to grasp with right hand"<<endl;                
+                // Check for obstructing (grasped) objects
+                actionR->areFingersInPosition(fr);
+
+                if (!fr)
+                    cout<<"Right hand obstructed while opening"<<endl;
+                else
+                    cout<<"Right hand fully opened"<<endl;
+
+            }              
         }
 
         return true;
