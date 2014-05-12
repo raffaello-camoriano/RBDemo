@@ -143,6 +143,7 @@ protected:
     unsigned int cntcTaxelNum;  // Number of activated taxels
     
     double pressureTh;          // Threshold on cntcPressure for a contact to be detected
+    bool onlyCoord;             // Flag to output only contact coords
 
 // CLASS VARIABLES - encoders related
 
@@ -176,7 +177,7 @@ public:
 
     contactPosRootConverterWorker(const string &_name, const string &_robot,
                                   const string &_inPortName, const string &_outPortName,
-                                  const double _pressureTh) {
+                                  const double _pressureTh, const bool _onlyCoord) {
 
         name = _name;
         robot = _robot;
@@ -185,6 +186,7 @@ public:
         outPortName = _outPortName;
 
         setPressureTh(_pressureTh);
+        onlyCoord = _onlyCoord;
 
         cntctDetect = -1;
 
@@ -315,8 +317,8 @@ public:
         /* Process the skinContactList:
         case 0: NULL --> no new data --> doing nothing
         case 1: empty --> no contact detected --> doing nothing
-        case 2: not empty --> at least 1 contact above threshold --> sending: cntctSkinPArt + cntctPosWRF
-        case 3: not empty --> 0 contact above threshold --> sending: -1
+        case 2: not empty --> at least 1 contact above threshold --> sending: cntctSkinPart (optional) + cntctPosWRF
+        case 3: not empty --> 0 contact above threshold --> doing nothind
         */
 
         if (cntctVec!=NULL && !cntctVec->empty()) {
@@ -339,14 +341,15 @@ public:
             else 
                 cntctDetect = -1;
 
-            // Prepare the output bottle
-
-            Bottle &output = outPort.prepare();
-            output.clear();
-
             if (cntctDetect==0) {
 
-                output.addInt(cntctSkinPart);
+                // Prepare the output bottle
+
+                Bottle &output = outPort.prepare();
+                output.clear();
+
+                if (!onlyCoord)
+                    output.addInt(cntctSkinPart);
 
                 // Convert the coordinates
                 
@@ -436,20 +439,26 @@ public:
 
                 fprintf(stdout,"CONTACT! skinPart: %s Link: %i Position: %s\n", cntctSkinPartV.c_str(), cntctLinkNum,cntctPosWRF.toString().c_str());
 
-                Bottle outputCoord;
-                outputCoord.addDouble(cntctPosWRF[0]);
-                outputCoord.addDouble(cntctPosWRF[1]);
-                outputCoord.addDouble(cntctPosWRF[2]);
+                if (!onlyCoord) {
 
-                output.addList() = outputCoord;
+                    Bottle outputCoord;
+                    outputCoord.addDouble(cntctPosWRF[0]);
+                    outputCoord.addDouble(cntctPosWRF[1]);
+                    outputCoord.addDouble(cntctPosWRF[2]);
 
-            } else {
+                    output.addList() = outputCoord;
 
-                output.addInt(cntctDetect);
+                } else {
 
-            }
+                    output.addDouble(cntctPosWRF[0]);
+                    output.addDouble(cntctPosWRF[1]);
+                    output.addDouble(cntctPosWRF[2]);
 
-            outPort.write();
+                }
+
+                outPort.write();
+
+            } 
 
         }
 
@@ -469,13 +478,6 @@ public:
         delete armR;
         delete armL;
         fprintf(stdout, "%s: deleted arm models\n", name.c_str());
-
-        /*
-        delete iencsL;
-        delete iencsR;
-        delete iencsT;
-        fprintf(stdout, "&s: released dynamic resources\n", name.c_str());
-        */
 
         return true;
 
@@ -508,6 +510,8 @@ protected:
 
     double pressureThreshold;
 
+    bool onlyCoordinates;
+
     contactPosRootConverterWorker *workerClass;
 
     string helpMessage;
@@ -526,17 +530,20 @@ public:
 
         pressureThreshold = PRESSURE_THRESHOLD;
 
+        onlyCoordinates = false;
+
         workerClass = NULL;
 
         helpMessage = string(getName().c_str());
         helpMessage += "Options:\n";
-        helpMessage += "  --context             path:  where to find the called resource (default RBDemo)\n";
-        helpMessage += "  --from                from:  name of the .ini file (default contactPosRootConverter.ini)\n";
-        helpMessage += "  --name                name:  name of the module (default contactPosRootConverter)\n";
-        helpMessage += "  --robot               robot: name of the robot (default icub)\n";
-        helpMessage += "  --input_port          input_port:  subfix of the input port (default /contacts:i)\n";
-        helpMessage += "  --output_port         output_port:  subfix of the output port (default /contacts_pos:o)\n";
-        helpMessage += "  --pressure_thresh     pressure_thresh: threshold on the avg pressure for a contact to be detected (default 15)\n";
+        helpMessage += "--context             path:  where to find the called resource (default RBDemo)\n";
+        helpMessage += "--from                from:  name of the .ini file (default contactPosRootConverter.ini)\n";
+        helpMessage += "--name                name:  name of the module (default contactPosRootConverter)\n";
+        helpMessage += "--robot               robot: name of the robot (default icub)\n";
+        helpMessage += "--input_port          input_port:  subfix of the input port (default /contacts:i)\n";
+        helpMessage += "--output_port         output_port:  subfix of the output port (default /contacts_pos:o)\n";
+        helpMessage += "--pressure_thresh     pressure_thresh: threshold on the avg pressure for a contact to be detected (default 15)\n";
+        helpMessage =+ "--only_coord          only_coord: flag to output only the contact coordinates without skin part (default no)\n";
         helpMessage += "Commands:\n";
         helpMessage += "stop                    stops the module\n";
         helpMessage += "help                    prints options and commands\n";
@@ -569,9 +576,15 @@ public:
         
         // pressure threshold (set from either cmd line or .ini file or default defined value)
         pressureThreshold = rf.check("pressure_thresh",Value(PRESSURE_THRESHOLD),"pressure_thresh (double)").asDouble();
-
+        
+        // flag to output only contact coordinates (set from either cmd line or .ini file or default defined value)
+        if (rf.check("only_coord"))
+            onlyCoordinates = true;
+        else
+            onlyCoordinates = false;
+        
         // instantiate worker class
-        workerClass = new contactPosRootConverterWorker(name, robot, inputPortName, outputPortName, pressureThreshold);
+        workerClass = new contactPosRootConverterWorker(name, robot, inputPortName, outputPortName, pressureThreshold, onlyCoordinates);
         bool startOk = workerClass->open();
         if (!startOk) {
             delete workerClass;
@@ -689,8 +702,8 @@ int main(int argc, char *argv[]) {
 
     rf.setVerbose(true);
 
-    rf.setDefaultConfigFile( "contactPosRootConverter.ini" ); //overridden by --from parameter
-    rf.setDefaultContext( "RBDemo" );   //overridden by --context parameter
+    rf.setDefaultConfigFile( "contactPosRootConverter.ini" );   //overridden by --from parameter
+    rf.setDefaultContext( "RBDemo" );                           //overridden by --context parameter
 
     rf.configure(argc, argv );
 
@@ -702,6 +715,7 @@ int main(int argc, char *argv[]) {
     optMessage =+ " --input_port        input_port: subfix of the input port (default /contacts:i)\n";
     optMessage =+ " --output_port       output_port: subfix of the output port (default /contacts_pos:o)\n";
     optMessage =+ " --pressure_thresh   pressure_thresh: threshold on the avg pressure for a contact to be detected (default 15)\n";
+    optMessage =+ " --only_coord        only_coord: flag to output only the contact coordinates without skin part (default no)\n";
 
     if (rf.check("help")) {
         fprintf(stdout, "%s", optMessage.c_str());
