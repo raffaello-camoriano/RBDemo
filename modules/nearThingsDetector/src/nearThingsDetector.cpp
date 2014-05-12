@@ -156,7 +156,6 @@ bool NearThingsDetector::open()
         origin = Scalar(0,0,0);
     }
     fprintf(stdout,"Frame used : [%.2f,%.2f,%.2f]\n", origin[0], origin[1], origin[2] );	
-    //cout << "Frame used "<< origin << endl;
     range = moduleRF->check("range", Value(0.5)).asDouble();
     backgroundThresh = moduleRF->check("backgroundThresh", Value(50)).asInt();		// threshold of intensity if the disparity image, under which info is ignored.
     cannyThresh = moduleRF->check("cannyThresh", Value(20)).asDouble();
@@ -219,7 +218,6 @@ bool NearThingsDetector::setOrigin(vector<double> o)
     for (int i=0; i<o.size(); i++)
         this->origin[i] = o[i];
     fprintf(stdout,"New origin Coords are : [%.2f,%.2f,%.2f]\n", origin[0], origin[1], origin[2] );
-    //cout << "New origin Coords" << origin << endl;
     return true;
 }
 
@@ -230,7 +228,6 @@ bool NearThingsDetector::setRange(double r)
         return false;
     }
     fprintf(stdout,"New Range is : %.2f\n", r);
-    //cout << "New range is " << r << endl;
     this->range = r;
     return true;
 }
