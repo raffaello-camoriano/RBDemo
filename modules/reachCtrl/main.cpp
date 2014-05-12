@@ -134,6 +134,7 @@ protected:
     bool useLeftArm;
     bool useRightArm;
     int  armSel;
+    int thread_period_ms;
     
     PolyDriver *drvTorso, *drvLeftArm, *drvRightArm;
     PolyDriver *drvCartLeftArm, *drvCartRightArm;
@@ -176,14 +177,11 @@ protected:
     double graspTimer, graspTmo;
     
     struct {
-    double minX, maxX;
-    double minY, maxY;
-    double minZ, maxZ;
+        double minX, maxX;
+        double minY, maxY;
+        double minZ, maxZ;
     } reachableSpace;
   
-    //double latchTimer;
-    double hystThres;
-    
     Vector openHandPoss;
     Vector handVels;
     
@@ -198,7 +196,98 @@ protected:
     int state;
     int startup_context_id_left;
     int startup_context_id_right;
-       
+    
+     void getTorsoOptions(Bottle &b, const char *type, const int i, Vector &sw, Matrix &lim)
+    {
+        if (b.check(type))
+        {
+            Bottle &grp=b.findGroup(type);
+            sw[i]=grp.get(1).asString()=="on"?1.0:0.0;
+
+            if (grp.check("min","Getting minimum value"))
+            {
+                lim(i,0)=1.0;
+                lim(i,1)=grp.find("min").asDouble();
+            }
+
+            if (grp.check("max","Getting maximum value"))
+            {
+                lim(i,2)=1.0;
+                lim(i,3)=grp.find("max").asDouble();
+            }
+        }
+    }
+
+    void getArmOptions(Bottle &b, Vector &reachOffs, Vector &orien, bool &impVelMode,
+                       Vector &impStiff, Vector &impDamp)
+    {
+        if (b.check("reach_offset","Getting reaching offset"))
+        {
+            Bottle &grp=b.findGroup("reach_offset");
+            int sz=grp.size()-1;
+            int len=sz>3?3:sz;
+
+            for (int i=0; i<len; i++)
+                reachOffs[i]=grp.get(1+i).asDouble();
+        }
+
+        if (b.check("hand_orientation","Getting hand orientation"))
+        {
+            Bottle &grp=b.findGroup("hand_orientation");
+            int sz=grp.size()-1;
+            int len=sz>4?4:sz;
+
+            for (int i=0; i<len; i++)
+                orien[i]=grp.get(1+i).asDouble();
+        }
+
+        impVelMode=b.check("impedance_velocity_mode",Value("off"),"Getting arm impedance-velocity-mode").asString()=="on"?true:false;
+
+        if (b.check("impedance_stiffness","Getting joints stiffness"))
+        {
+            Bottle &grp=b.findGroup("impedance_stiffness");
+            size_t sz=grp.size()-1;
+            size_t len=sz>impStiff.length()?impStiff.length():sz;
+
+            for (size_t i=0; i<len; i++)
+                impStiff[i]=grp.get(1+i).asDouble();
+        }
+
+        if (b.check("impedance_damping","Getting joints damping"))
+        {
+            Bottle &grp=b.findGroup("impedance_damping");
+            size_t sz=grp.size()-1;
+            size_t len=sz>impDamp.length()?impDamp.length():sz;
+
+            for (size_t i=0; i<len; i++)
+                impDamp[i]=grp.get(1+i).asDouble();
+        }
+    }
+
+    void getHomeOptions(Bottle &b, Vector &poss, Vector &vels)
+    {
+        if (b.check("poss","Getting home poss"))
+        {
+            Bottle &grp=b.findGroup("poss");
+            int sz=grp.size()-1;
+            int len=sz>7?7:sz;
+
+            for (int i=0; i<len; i++)
+                poss[i]=grp.get(1+i).asDouble();
+        }
+
+        if (b.check("vels","Getting home vels"))
+        {
+            Bottle &grp=b.findGroup("vels");
+            int sz=grp.size()-1;
+            int len=sz>7?7:sz;
+
+            for (int i=0; i<len; i++)
+                vels[i]=grp.get(1+i).asDouble();
+        }
+    }
+
+    
     void initCartesianCtrl(Vector &sw, Matrix &lim, const int sel=USEDARM)
     {
         ICartesianControl *icart=cartArm;
@@ -635,37 +724,37 @@ public:
     
     bool threadInit()
     {
-        //general part
-        //getting some default values mostly from contexts/demoGrasp_IIT_ISR/config.ini
-        robot = "icubSim";
-        if (rf.check("robot"))
-            {
-                robot = rf.find("robot").asString();
-                cout << "Robot is: " << robot << endl;
-            }
-            else cout << "Could not find robot option in the config file; using "
-                      << robot << " as default\n";
-       
-        useLeftArm = true;
-        useRightArm = true;
-        trajTime=2.0;
-        reachTol=0.01;
-        setRate(DEFAULT_THR_PER); // 20 ms ~ 50 Hz
-        hystThres = 0.05;
-        reachTmo = 5.0;
-        graspTmo = 5.0;
-        reachableSpace.minX=-0.4; reachableSpace.maxX=-0.2;
-        reachableSpace.minY=-0.3; reachableSpace.maxY=0.3;
-        reachableSpace.minZ=-0.1; reachableSpace.maxZ=0.1;
-                
+        
+        //getting values from config file
+        // general part
+        Bottle &bGeneral=rf.findGroup("general");
+        bGeneral.setMonitor(rf.getMonitor());
+        robot=bGeneral.check("robot",Value("icub"),"Getting robot name").asString().c_str();
+        setRate(bGeneral.check("thread_period",Value(DEFAULT_THR_PER),"Getting thread period [ms]").asInt());
+        useLeftArm=bGeneral.check("left_arm",Value("on"),"Getting left arm use flag").asString()=="on"?true:false;
+        useRightArm=bGeneral.check("right_arm",Value("on"),"Getting right arm use flag").asString()=="on"?true:false;
+        trajTime=bGeneral.check("traj_time",Value(2.0),"Getting trajectory time").asDouble();
+        reachTol=bGeneral.check("reach_tol",Value(0.01),"Getting reaching tolerance").asDouble();
+        reachTmo=bGeneral.check("reach_tmo",Value(5.0),"Getting reach timeout").asDouble();
+        graspTmo=bGeneral.check("grasp_tmo",Value(5.0),"Getting grasp timeout").asDouble();
+        
         // torso part
+        Bottle &bTorso=rf.findGroup("torso");
+        bTorso.setMonitor(rf.getMonitor());
+
         Vector torsoSwitch(3);   torsoSwitch.zero();
         Matrix torsoLimits(3,4); torsoLimits.zero();
-        torsoSwitch[0]=1.0; //pitch on 
-        torsoSwitch[1]=0.0; //roll off 
-        torsoSwitch[2]=1.0; //yaw on 
-        torsoLimits(0,2)=1.0; torsoLimits(0,3)=10.0;  //max limit on pitch
-              
+
+        getTorsoOptions(bTorso,"pitch",0,torsoSwitch,torsoLimits);
+        getTorsoOptions(bTorso,"roll",1,torsoSwitch,torsoLimits);
+        getTorsoOptions(bTorso,"yaw",2,torsoSwitch,torsoLimits);    
+               
+         // arm parts
+        Bottle &bLeftArm=rf.findGroup("left_arm");
+        Bottle &bRightArm=rf.findGroup("right_arm");
+        bLeftArm.setMonitor(rf.getMonitor());
+        bRightArm.setMonitor(rf.getMonitor());
+        
         // arm parts
         leftArmReachOffs.resize(3,0.0);
         leftArmHandOrien.resize(4,0.0);
@@ -676,29 +765,26 @@ public:
         rightArmJointsStiffness.resize(5,0.0);
         rightArmJointsDamping.resize(5,0.0);
 
-         //getting some default values from contexts/demoGrasp_IIT_ISR/config.ini and making them symmetrical    
-        leftArmReachOffs[0]=0.03; leftArmReachOffs[1]=-0.08; leftArmReachOffs[2]=-0.03;  
-        leftArmHandOrien[0]= -0.03; leftArmHandOrien[1]= 0.7; leftArmHandOrien[2]= -0.7; leftArmHandOrien[3]= 3.0;
-        leftArmJointsStiffness[0]=0.5; leftArmJointsStiffness[1]=0.5; leftArmJointsStiffness[2]=0.5; leftArmJointsStiffness[3]=0.2; leftArmJointsStiffness[4]=0.1;
-        leftArmJointsDamping[0]=0.06; leftArmJointsDamping[1]=0.06; leftArmJointsDamping[2]=0.06; leftArmJointsDamping[3]=0.02; leftArmJointsDamping[4]=0.0;
-        
-        rightArmReachOffs[0]=0.03; leftArmReachOffs[1]=0.08; leftArmReachOffs[2]=-0.03;  
-        rightArmHandOrien[0]= -0.03; rightArmHandOrien[1]= -0.7; rightArmHandOrien[2]= 0.7; rightArmHandOrien[3]= 3.0;      
-        rightArmJointsStiffness[0]=0.5 ; rightArmJointsStiffness[1]=0.5 ; rightArmJointsStiffness[2]=0.5 ; rightArmJointsStiffness[3]=0.2 ; rightArmJointsStiffness[4]=0.1 ;
-        rightArmJointsDamping[0]=0.06; rightArmJointsDamping[1]=0.06; rightArmJointsDamping[2]=0.06; rightArmJointsDamping[3]=0.02; rightArmJointsDamping[4]=0.0;
+        getArmOptions(bLeftArm,leftArmReachOffs,leftArmHandOrien,leftArmImpVelMode,
+                      leftArmJointsStiffness,leftArmJointsDamping);
+        getArmOptions(bRightArm,rightArmReachOffs,rightArmHandOrien,rightArmImpVelMode,
+                      rightArmJointsStiffness,rightArmJointsDamping);
        
-        openHandPoss.resize(9,0.0); //the default positions are all zeros
-        handVels.resize(9,0.0);
-        handVels[0]=20.0; handVels[1]=40.0; handVels[2]=50.0; handVels[3]=50.0; handVels[4]=50.0; handVels[5]=50.0; handVels[6]=50.0; handVels[7]=50.0; handVels[8]=80.0;
-        
+        // home part
+        Bottle &bHome=rf.findGroup("home_arm");
+        bHome.setMonitor(rf.getMonitor());
         homePoss.resize(7,0.0); homeVels.resize(7,0.0);
-        homePoss[0]=-30.0; homePoss[1]=30.0; homePoss[2]=0.0; homePoss[3]=45.0; homePoss[4]=0.0; homePoss[5]=0.0; homePoss[6]=0.0;
-        homeVels[0]=10.0; homeVels[1]=10.0; homeVels[2]=10.0; homeVels[3]=10.0; homeVels[4]=10.0; homeVels[5]=10.0; homeVels[6]=10.0;
-        
+        getHomeOptions(bHome,homePoss,homeVels);
+      
         targetPosFromPort.resize(3,0.0);
         targetPosFromRPC.resize(3,0.0);
         targetPos.resize(3,0.0);
        
+        //TODO add to config file
+        reachableSpace.minX=-0.4; reachableSpace.maxX=-0.2;
+        reachableSpace.minY=-0.3; reachableSpace.maxY=0.3;
+        reachableSpace.minZ=-0.1; reachableSpace.maxZ=0.1;
+        
          // open ports
         inportTargetCoordinates.open((name+"/reachingTarget:i").c_str());
         outportHandToBeClosed.open((name+"/handToBeClosed:o").c_str());
@@ -765,7 +851,6 @@ public:
                 close();
                 return false;
             }
-
             if (leftArmImpVelMode)
             {
                 IControlMode      *imode;
