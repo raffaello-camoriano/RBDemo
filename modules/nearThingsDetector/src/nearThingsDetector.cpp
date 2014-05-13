@@ -274,10 +274,10 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
     target.clear();
 
     /* Filter disparity image to reduce noise */
-    GaussianBlur(disp, disp, Size(gaussSize,gaussSize), 1.5, 1.5);
-    Mat threshIm;
-    threshold(disp, threshIm, backgroundThresh, 1, CV_THRESH_BINARY);			// First
-    multiply(disp, threshIm, disp);	
+    //GaussianBlur(disp, disp, Size(gaussSize,gaussSize), 1.5, 1.5);
+    //Mat threshIm;
+    //threshold(disp, threshIm, backgroundThresh, 1, CV_THRESH_BINARY);			// First
+    //multiply(disp, threshIm, disp);	
     //erode(disp,disp,Mat());
     //dilate(disp,disp, Mat());
     cvtColor(disp, imOut, CV_GRAY2BGR);						// Grayscale to BGR
@@ -303,11 +303,9 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
     vector<Vec4i> hierarchy;
     //Canny( disp, edges, cannyThresh, cannyThresh*3, 3 );			// Detect edges using canny	
     findContours( fillMask(Range(1,disp.rows),Range(1,disp.cols)), contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
-	cout << "Found  " << contours.size() << " blobs." << endl;
-
+	
     /* If any blob is found */
     if (contours.size()>0){
-        printf("Checking there is only 1 blob:\n");
         /* Double check that only the bigger blob is selected as the valid one*/
         int blobI = 0;
         for( int c = 0; c < contours.size(); c++ ){
@@ -316,7 +314,6 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
                 blobI = c;
             }
         }
-        printf("drawing blob contour:\n");
         /* Mark closest blob for visualization*/
         drawContours( imOut, contours, -1, blue, 2, 8); 
         
@@ -329,20 +326,19 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
         */
         
         /* Get and draw centroid of the closest blob */ 
-        printf("Painting Center: \n");
         Point center;
         Moments mu = moments( contours[blobI], false );		
         center = Point2f( mu.m10/mu.m00 , mu.m01/mu.m00 );
         circle( imOut, center, 4, red, -1, 8, 0 );
         
         /* Get and return valid 3D coords of the blob */
-        printf("querying SFM: \n");
         Bottle cmdSFM, responseSFM;
         Scalar pointCoords;
         RNG rng;
         int validVals = 0;
         double dist3D;
         int cnt = 0;
+        int step = 1;
         while (validVals == 0){
             /* Query the SFM module and to get the 3D coords of the point */
             cmdSFM.clear();
@@ -351,7 +347,7 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
             cmdSFM.addInt(center.x);
             cmdSFM.addInt(center.y);
             rpcOutPort.write(cmdSFM, responseSFM); 
-            printf("Got response: %s\n", responseSFM.toString().c_str());
+            //printf("Got response: %s\n", responseSFM.toString().c_str());
                     
             /* Read the 3D coords and compute the distance to the set reference frame origin*/
             if (responseSFM.size() == 3){            
@@ -361,18 +357,21 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
             }
             validVals = countNonZero(pointCoords);                      // Check if the data is Valid
             if (validVals == 0){                                        // If the data is not valid, update the query point
-                center.x += rng.uniform(-1, 2);
-                if (center.x<0) {center.x = 0;}
-                if (center.x>disp.rows) {center.x = disp.rows;}
-                center.y += rng.uniform(-1, 2);
-                if (center.y<0) {center.y = 0;}
-                if (center.y>disp.cols) {center.y = disp.cols;}
-                printf("Looking for a better point, on coords: %d %d \n", center.x, center.y);
+                if (cnt%2==0){                                          // Spiral outwards until a valid point is found
+                    center.x += step;
+                    if (center.x<0) {center.x = 0;}
+                    if (center.x>disp.rows) {center.x = disp.rows;}
+                }else{
+                    center.y += step;
+                    if (center.y<0) {center.y = 0;}
+                    if (center.y>disp.cols) {center.y = disp.cols;}
+                    step = -1*(step+1);
+                }         
+                //printf("Looking for a better point, on coords: %d %d \n", center.x, center.y);
             }else{                                                      // If the data is valid, compute the distance
                 pointCoords -= origin;                                                                         // subtract the offset            
                 dist3D = sqrt(pointCoords[0]*pointCoords[0]+pointCoords[1]*pointCoords[1]+pointCoords[2]*pointCoords[2]);   // Compute euclidean distance
-            }
-          
+            }          
         }
         
         //Scalar centerCoords = mean(worldCoords, mask);			    // Accpount only for coords where worldCoords data is valid  
@@ -391,9 +390,9 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
         //Scalar avgDist = mean(dist3D,mask);
         //cout << "Closest blob is at avg distance " << dist3D << endl;
         if (dist3D > range){
-            drawContours( reachness, contours[blobI], -1, red, CV_FILLED, 8);		// Paint red far blobs
+            drawContours( reachness, contours, -1, red, CV_FILLED, 8);		// Paint red far blobs
         }else{
-            drawContours( reachness, contours[blobI], -1, green, CV_FILLED, 8);		// Paint green close blobs
+            drawContours( reachness, contours, -1, green, CV_FILLED, 8);		// Paint green close blobs
         }
         addWeighted( imOut, 0.7, reachness, 0.3, 0.0, imOut);
       
