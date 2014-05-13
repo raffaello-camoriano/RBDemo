@@ -21,6 +21,7 @@
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/RFModule.h>
 #include <yarp/os/Network.h>
+#include <yarp/os/RpcClient.h>
 #include <yarp/os/Thread.h>
 #include <yarp/os/RateThread.h>
 #include <yarp/os/Time.h>
@@ -46,18 +47,19 @@ class NearThingsDetector : public yarp::os::BufferedPort<yarp::sig::ImageOf<yarp
 private:
 
     std::string moduleName;                     //string containing module name
-    std::string worldInPortName;                //string containing world in info port name
+    //std::string worldInPortName;                //string containing world in info port name
     std::string dispInPortName;                 //string containing disparity image port name
     std::string targetOutPortName;              //string containing output target port name
     std::string imageOutPortName;               //string containing output image port name
+    std::string clientPortName;                 //string containing output rpc port name
     
-    yarp::os::Port									rpcPort;							// rpc port (receive commands via rpc), returns bounding box of selected blob
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgbFloat> > worldInPort;	// input Port with info of 3D world
-    //yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> >	dispInPort;		// Receives disparity greyscale image
+    //yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> >	dispInPort;		// Receives disparity greyscale image --- Handled by the clas itself
+    yarp::os::Port									                    rpcOutPort;		// output rpc port to send queries to SFM
+   // yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgbFloat> > worldInPort;	// input Port with info of 3D world    
     yarp::os::BufferedPort<yarp::os::Bottle>							targetOutPort;	// Send coordinates of closest point.
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> >	imageOutPort;	// output image Port with info drawn over  
 
-    /* Pointer to the RF module */
+    /* Pointer to the Resource Finder */
     yarp::os::ResourceFinder *moduleRF;
 
     /* Algorithm Variables */
@@ -96,8 +98,8 @@ class NearDetectorModule:public yarp::os::RFModule
 {
     /* module parameters */
     std::string             moduleName;
-    std::string             handlerPortName;
-    yarp::os::RpcServer     rpcPort;
+    std::string             handlerPortName;    
+    yarp::os::RpcServer     rpcInPort;
 
     /* pointer to a new thread */
     NearThingsDetector      *detector;

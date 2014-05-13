@@ -1,0 +1,99 @@
+<application>
+    <name>nearThingsDetector</name>
+    <module>
+        <name>SFM</name>
+        <parameters></parameters>
+        <node></node>
+        <prefix></prefix>
+        <geometry>(Pos (x 231.00) (y 130.90))</geometry>
+    </module>
+    <module>
+        <name>nearThingsDetector</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 419.90) (y 193.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--x 350 --y 300</parameters>
+        <node>localhost</node>
+        <prefix>/imOut</prefix>
+        <geometry>(Pos (x 857.00) (y 261.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--x 0 --y 300</parameters>
+        <node>localhost</node>
+        <prefix>/disp</prefix>
+        <geometry>(Pos (x 414.00) (y 94.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--x 0 --y 0</parameters>
+        <node>localhost</node>
+        <prefix>/left</prefix>
+        <geometry>(Pos (x 216.00) (y 61.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--x 350 --y 0</parameters>
+        <node>localhost</node>
+        <prefix>/right</prefix>
+        <geometry>(Pos (x 216.00) (y 240.90))</geometry>
+    </module>
+    <connection>
+        <from external="true">/nearThingsDetector/img:o</from>
+        <to>/imOut/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 733.00) (y 281.00)) ((x 629.00) (y 281.00)) ((x 858.00) (y 280.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/nearThingsDetector/target:o</from>
+        <to external="true">/searchforiKinPort</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 694.50) (y 315.00)) ((x 650.00) (y 314.00)) ((x 768.00) (y 314.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/SFM/disp:o</from>
+        <to external="true">/nearThingsDetector/disp:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 377.50) (y 161.00)) ((x 345.00) (y 149.00)) ((x 439.00) (y 172.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/SFM/disp:o</from>
+        <to>/disp/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 369.50) (y 131.00)) ((x 345.00) (y 149.00)) ((x 415.00) (y 113.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/cam/left</from>
+        <to>/SFM/left:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 177.00) (y 142.00)) ((x 143.00) (y 134.00)) ((x 232.00) (y 149.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/cam/right</from>
+        <to>/SFM/right:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 180.50) (y 176.50)) ((x 150.00) (y 178.00)) ((x 232.00) (y 174.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/nearThingsDetector/rpc:o</from>
+        <to>/SFM/rpc</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 419.50) (y 224.50)) ((x 628.00) (y 249.00)) ((x 232.00) (y 199.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/cam/left</from>
+        <to>/left/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 169.50) (y 107.50)) ((x 143.00) (y 134.00)) ((x 217.00) (y 80.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/icub/cam/right</from>
+        <to>/right/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 173.00) (y 219.00)) ((x 150.00) (y 178.00)) ((x 217.00) (y 259.00))  )</geometry>
+    </connection>
+</application>
