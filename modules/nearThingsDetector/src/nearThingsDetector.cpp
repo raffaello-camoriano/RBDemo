@@ -102,8 +102,7 @@ bool NearDetectorModule::respond(const Bottle &command, Bottle &reply)
             responseCode = Vocab::encode("nack");
         reply.addVocab(responseCode);
         return true;
-    }
-    else if (receivedCmd == "range"){
+    }else if (receivedCmd == "range"){
         bool ok = detector->setRange(command.get(1).asDouble());
         if (ok)
             responseCode = Vocab::encode("ack");
@@ -113,8 +112,15 @@ bool NearDetectorModule::respond(const Bottle &command, Bottle &reply)
         }
         reply.addVocab(responseCode);
         return true;
+    }else if (receivedCmd == "help"){
+        reply.addVocab(Vocab::encode("many"));
+        reply.addString("Available commands are:");
+        reply.addString("origin X Y Z- set the coordinates from where the 3D distance is computed.");
+        reply.addString("range R - modifies the distance within which blobs are considered reachable.");
+        reply.addString("help - produces this help.");
+        reply.addString("quit - closes the module.");
     } else if (receivedCmd == "quit"){
-        closing =true;
+        closing = true;
     }
 
     fprintf(stdout,"Code not accepted. \n");
@@ -339,7 +345,7 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
         double dist3D;
         int cnt = 0;
         int step = 1;
-        while (validVals == 0){
+        while (validVals == 0){        
             /* Query the SFM module and to get the 3D coords of the point */
             cmdSFM.clear();
             responseSFM.clear();
@@ -358,15 +364,17 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
             validVals = countNonZero(pointCoords);                      // Check if the data is Valid
             if (validVals == 0){                                        // If the data is not valid, update the query point
                 if (cnt%2==0){                                          // Spiral outwards until a valid point is found
-                    center.x += step;
+                    center.x += step;                    
                     if (center.x<0) {center.x = 0;}
-                    if (center.x>disp.rows) {center.x = disp.rows;}
+                    if (center.x>disp.cols) {center.x = disp.cols;}
                 }else{
-                    center.y += step;
+                    center.y += step;                    
                     if (center.y<0) {center.y = 0;}
-                    if (center.y>disp.cols) {center.y = disp.cols;}
-                    step = -1*(step+1);
-                }         
+                    if (center.y>disp.rows) {center.y = disp.rows;}
+                    int sign = (step > 0) - (step < 0);
+                    step = -1*(step + sign);                    // Square spirar coords follow x(t+1)=-1*(x(t)+sign(x(t))).
+                } 
+                cnt +=1;
                 //printf("Looking for a better point, on coords: %d %d \n", center.x, center.y);
             }else{                                                      // If the data is valid, compute the distance
                 pointCoords -= origin;                                                                         // subtract the offset            
