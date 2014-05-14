@@ -34,8 +34,7 @@
             <priority>no</priority>
             <description>StereoDisparity disparity image</description>
         </input>
-        
-        <!--
+
         <input>
             <type>ImageOfPixelFloat</type>
             <port carrier="udp">/nearThingsDetector/world:i</port>
@@ -43,7 +42,6 @@
             <priority>no</priority>
             <description>stereo disparity world image</description>
         </input>
-        -->
         
         <!-- output data if available -->
         <output>
@@ -58,8 +56,8 @@
         </output>
         <output>
             <type>rpc</type>
-            <port carrier="udp">/nearThingsDetector/rpc:o</port>
-            <description> Output RPC to communicate with SFM</description>
+            <port carrier="udp">/nearThingsDetector/sfm:o</port>
+            <description> Output commands or data to communicate with SFM</description>
         </output>
     </data>
 

@@ -171,6 +171,8 @@ bool NearThingsDetector::open()
     gaussSize = moduleRF->check("gaussSize", Value(5)).asInt();
     dispThreshRatioLow = moduleRF->check("dispThreshRatioLow", Value(10)).asInt();    
     dispThreshRatioHigh = moduleRF->check("dispThreshRatioHigh", Value(20)).asInt();
+
+    blobBox = Rect(0,0,320,240); // Dumm initialization
     
     bool ret=true;
     //create all ports
@@ -179,8 +181,8 @@ bool NearThingsDetector::open()
     dispInPortName = "/" + moduleName + "/disp:i";
     BufferedPort<ImageOf<PixelBgr>  >::open( dispInPortName.c_str() );
     
-    //worldInPortName = "/" + moduleName + "/world:i";
-    //worldInPort.open(worldInPortName);
+    worldInPortName = "/" + moduleName + "/world:i";
+    worldInPort.open(worldInPortName);
     
     imageOutPortName = "/" + moduleName + "/img:o";
     imageOutPort.open(imageOutPortName);
@@ -188,8 +190,8 @@ bool NearThingsDetector::open()
     targetOutPortName = "/" + moduleName + "/target:o";
     targetOutPort.open(targetOutPortName);
 
-    clientPortName = "/" + moduleName + "/rpc:o";
-    rpcOutPort.open(clientPortName);
+    sfmOutPortName = "/" + moduleName + "/sfm:o";
+    sfmOutPort.open(sfmOutPortName);
     
     return ret;
 }
@@ -199,8 +201,8 @@ void NearThingsDetector::close()
 {
     fprintf(stdout,"now closing ports...\n");
     
-    rpcOutPort.close();
-    //worldInPort.close();
+    sfmOutPort.close();
+    worldInPort.close();
     imageOutPort.close();
     targetOutPort.close();
     BufferedPort<ImageOf<PixelBgr>  >::close();
@@ -214,8 +216,8 @@ void NearThingsDetector::interrupt()
 	
     fprintf(stdout,"cleaning up...\n");
     fprintf(stdout,"attempting to interrupt ports\n");
-    rpcOutPort.interrupt();
-    //worldInPort.interrupt();
+    sfmOutPort.interrupt();
+    worldInPort.interrupt();
     imageOutPort.interrupt();
     targetOutPort.interrupt();
     BufferedPort<ImageOf<PixelBgr>  >::interrupt();
@@ -263,21 +265,30 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
     cvtColor(disp, disp, CV_BGR2GRAY);						// Brg to grayscale
 	
     /* Read 3D coords world image */
-    /*
     ImageOf<PixelRgbFloat> *world  = worldInPort.read();	// read stereo world data
     if(world == NULL)
         return;
-    Mat worldCoords((IplImage*) world->getIplImage());			// Reformat to Mat
-    */
-
+    Mat worldBox((IplImage*) world->getIplImage());			// Reformat to Mat
+    cout << " World info received of size  ["<< worldBox.size().width << "x" << worldBox.size().height  << "]"<< endl;
+    Mat worldCoords(disp.size(), CV_32FC3, Scalar(0,0,0));  // Prepare canvas of whole image size
+    worldBox.copyTo(worldCoords(blobBox));                  // Copy the available world data in its position    
+    
     /* Prepare output image for visualization */
     ImageOf<PixelBgr> &imageOut  = imageOutPort.prepare();
     imageOut = disparity;	
     Mat imOut((IplImage*)imageOut.getIplImage(),false);
 
+    /* check and plt the ROI returned by world*/
+    cout << " blob Box is  ["<< blobBox.tl().x << "," << blobBox.tl().y << "]:["<<blobBox.br().x << ","<<blobBox.br().y << "]"<< endl;
+    rectangle(imOut, blobBox, Scalar(255,0,0), 2 );
+
     /* Prepare output target port */
     Bottle &target = targetOutPort.prepare();
     target.clear();
+    /* Prepare output blob bounding box port */
+    Bottle &blobBB = sfmOutPort.prepare();
+    blobBB.clear();
+
 
     /* Filter disparity image to reduce noise */
     //GaussianBlur(disp, disp, Size(gaussSize,gaussSize), 1.5, 1.5);
@@ -323,21 +334,31 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
         /* Mark closest blob for visualization*/
         drawContours( imOut, contours, -1, blue, 2, 8); 
         
-        /* Compute euclidean distance of all points matrixwise as sqrt(ch0^2+ch1^2+ch2^2). */
-        /*
+        /* Compute euclidean distance of all points matrixwise as sqrt(ch0^2+ch1^2+ch2^2). */        
         Mat dist3D;
         vector<Mat> channels(3);	
         split(worldCoords-origin, channels);						// split image into its channels X Y Z
-        sqrt(channels[0].mul(channels[0])+channels[1].mul(channels[1])+channels[2].mul(channels[2]), dist3D);	
-        */
+        sqrt(channels[0].mul(channels[0])+channels[1].mul(channels[1])+channels[2].mul(channels[2]), dist3D);        
         
         /* Get and draw centroid of the closest blob */ 
         Point center;
         Moments mu = moments( contours[blobI], false );		
         center = Point2f( mu.m10/mu.m00 , mu.m01/mu.m00 );
-        circle( imOut, center, 4, red, -1, 8, 0 );
+        circle( imOut, center, 4, red, -1, 8, 0 );             
         
-        /* Get and return valid 3D coords of the blob */
+        /* Create a mask to ignore all points with non valid information (zero distance or out of contour). */
+        Mat cntMask(disp.size(), CV_8UC1, Scalar(0));                   // do a mask by using drawContours (-1) on another black image
+        drawContours( cntMask, contours, -1, Scalar(1), CV_FILLED, 8);  // Mask ignoring points outside the contours
+        Mat zeroMask(disp.size(), CV_8UC1, Scalar(0));                  // Filter the black pixels from the image as another mask using cv::threshold with THRESH_BINARY and a threshold value of zero
+        threshold(dist3D, zeroMask, 0, 1, 0);                           // Create a mask to ignore 0 values
+        Mat mask(disp.size(), CV_8UC1, Scalar(0));                      // Perform an AND operation on the two masks and the original
+        multiply(cntMask, zeroMask, mask, 1, CV_8UC1);                  // Compute jont mask: pixels within contours and with valid (non-zero) distances 
+        
+        Scalar centerCoords = mean(worldCoords, mask);			    // Accpount only for coords where worldCoords data is valid  
+
+
+        /* Get and return valid 3D coords of a point in the blob */
+        /*
         Bottle cmdSFM, responseSFM;
         Scalar pointCoords;
         RNG rng;
@@ -346,7 +367,7 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
         int cnt = 0;
         int step = 1;
         while (validVals == 0){        
-            /* Query the SFM module and to get the 3D coords of the point */
+            // Query the SFM module and to get the 3D coords of the point 
             cmdSFM.clear();
             responseSFM.clear();
             cmdSFM.addString("Point");
@@ -355,7 +376,7 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
             rpcOutPort.write(cmdSFM, responseSFM); 
             //printf("Got response: %s\n", responseSFM.toString().c_str());
                     
-            /* Read the 3D coords and compute the distance to the set reference frame origin*/
+            // Read the 3D coords and compute the distance to the set reference frame origin
             if (responseSFM.size() == 3){            
                 for (int p=0; p<=2; p++){
                     pointCoords[p] = responseSFM.get(p).asDouble();            
@@ -381,33 +402,32 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
                 dist3D = sqrt(pointCoords[0]*pointCoords[0]+pointCoords[1]*pointCoords[1]+pointCoords[2]*pointCoords[2]);   // Compute euclidean distance
             }          
         }
-        
-        //Scalar centerCoords = mean(worldCoords, mask);			    // Accpount only for coords where worldCoords data is valid  
-        
-        /* Create a mask to ignore all points with non valid information (zero distance or out of contour). *//*
-        Mat cntMask(disp.size(), CV_8UC1, Scalar(0));					// do a mask by using drawContours (-1) on another black image
-        drawContours( cntMask, contours, -1, Scalar(1), CV_FILLED, 8);	// Mask ignoring points outside the contours
-        Mat zeroMask(disp.size(), CV_8UC1, Scalar(0));					// Filter the black pixels from the image as another mask using cv::threshold with THRESH_BINARY and a threshold value of zero
-        threshold(dist3D, zeroMask, 0, 1, 0);							// Create a mask to ignore 0 values
-        Mat mask(disp.size(), CV_8UC1, Scalar(0));						// Perform an AND operation on the two masks and the original
-        multiply(cntMask, zeroMask, mask, 1, CV_8UC1);					// Compute jont mask: pixels within contours and with valid (non-zero) distances 
         */
 
         /* Compute the average distance of each detected blob */        
         Mat reachness(disp.size(), CV_8UC3, Scalar(0,0,0));
-        //Scalar avgDist = mean(dist3D,mask);
+        Scalar avgDist = mean(dist3D,mask);
         //cout << "Closest blob is at avg distance " << dist3D << endl;
-        if (dist3D > range){
+        if (avgDist[0] > range){
             drawContours( reachness, contours, -1, red, CV_FILLED, 8);		// Paint red far blobs
         }else{
             drawContours( reachness, contours, -1, green, CV_FILLED, 8);		// Paint green close blobs
         }
         addWeighted( imOut, 0.7, reachness, 0.3, 0.0, imOut);
-      
-        cout << "coords of the center of closest blob are : " << pointCoords[0] << ", "<< pointCoords[1]  << ", "<< pointCoords[2] << endl;
-        target.addDouble(pointCoords[0]);
-        target.addDouble(pointCoords[1]);
-        target.addDouble(pointCoords[2]);  
+
+        /* Update and send the blob bounding box for world i*/
+        blobBox = boundingRect(contours[blobI]);
+        blobBB.addInt(blobBox.tl().x);
+        blobBB.addInt(blobBox.tl().y);
+        blobBB.addInt(blobBox.br().x);
+        blobBB.addInt(blobBox.br().y);
+
+        /* Send Target coordinates*/
+        //cout << "coords of the center of closest blob are : " << pointCoords[0] << ", "<< pointCoords[1]  << ", "<< pointCoords[2] << endl;
+        target.addDouble(centerCoords[0]);
+        target.addDouble(centerCoords[1]);
+        target.addDouble(centerCoords[2]);  
+
     }
     
     mutex.post();
@@ -416,5 +436,6 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
     imageOutPort.setEnvelope(ts);
     imageOutPort.write();
     targetOutPort.write();
+    sfmOutPort.write();
 }
 //empty line to make gcc happy

@@ -47,17 +47,17 @@ class NearThingsDetector : public yarp::os::BufferedPort<yarp::sig::ImageOf<yarp
 private:
 
     std::string moduleName;                     //string containing module name
-    //std::string worldInPortName;                //string containing world in info port name
+    std::string worldInPortName;                //string containing world in info port name
     std::string dispInPortName;                 //string containing disparity image port name
     std::string targetOutPortName;              //string containing output target port name
     std::string imageOutPortName;               //string containing output image port name
-    std::string clientPortName;                 //string containing output rpc port name
+    std::string sfmOutPortName;                 //string containing output rpc port name
     
-    //yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> >	dispInPort;		// Receives disparity greyscale image --- Handled by the clas itself
-    yarp::os::Port									                    rpcOutPort;		// output rpc port to send queries to SFM
-   // yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgbFloat> > worldInPort;	// input Port with info of 3D world    
-    yarp::os::BufferedPort<yarp::os::Bottle>							targetOutPort;	// Send coordinates of closest point.
-    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> >	imageOutPort;	// output image Port with info drawn over  
+    //yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> >	dispInPort;		// Receives disparity greyscale image --- Handled by the clas itself    
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgbFloat> > worldInPort;	// input Port with info of 3D world    
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> >	imageOutPort;	// output image Port with info drawn over
+    yarp::os::BufferedPort<yarp::os::Bottle>							targetOutPort;	// Send coordinates of closest point.      
+    yarp::os::BufferedPort<yarp::os::Bottle>		                    sfmOutPort;		// output rpc port to send queries to SFM
 
     /* Pointer to the Resource Finder */
     yarp::os::ResourceFinder *moduleRF;
@@ -73,6 +73,8 @@ private:
     int gaussSize;
     float range;
     cv::Scalar origin;
+
+    cv::Rect blobBox; //(int x=5, int y=5, int width=5, int height=5); //create and dumm initialize blob bounding box
 	
 public:
     /**
