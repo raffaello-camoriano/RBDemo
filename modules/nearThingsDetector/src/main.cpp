@@ -52,8 +52,10 @@ Input ports
 - \e /<modName>/world:i receives a PixelRgbFloat image where the three channels correspond to the X Y Z coordinates of each point in the disparity image
 - \e /<modName>/rpc:i can be used to issue commands to the robot.
     Recognized remote commands:
-        - 'origin X Y Z' to modify the point in the robot frame from which the distance is computed
-        - 'range R' to set the range considered as reachable by the robot
+        - 'origin X Y Z' to modify the point in the robot frame from which the distance is computed.
+        - 'range R' to set the range considered as reachable by the robot.
+        - 'help' produces this help.
+        - 'quit' closes the module.
 
 Output ports
 - \e /<modName>/target:o streams out the center X Y Z coordinates of the closest object.
