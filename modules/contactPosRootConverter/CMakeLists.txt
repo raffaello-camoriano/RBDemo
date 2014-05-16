@@ -8,10 +8,6 @@ SET(PROJECTNAME contactPosRootConverter)
 
 PROJECT(${PROJECTNAME})
 
-find_package(YARP REQUIRED)
-find_package(ICUB REQUIRED)
-find_package(ICUBcontrib REQUIRED)
-
 if(NOT ICUB_USE_IPOPT)
     MESSAGE(FATAL_ERROR "IPOPT is required")
 endif(NOT ICUB_USE_IPOPT)
@@ -23,3 +19,4 @@ add_executable(${PROJECTNAME} main.cpp)
 target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} skinDynLib iKin)
 
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
+

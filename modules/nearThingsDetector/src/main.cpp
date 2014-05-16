@@ -54,6 +54,7 @@ Input ports
     Recognized remote commands:
         - 'origin X Y Z' to modify the point in the robot frame from which the distance is computed.
         - 'range R' to set the range considered as reachable by the robot.
+        - 'thresh T' to sets the lower limit of disparity in terms of luminosity (0-255) that is considered. In other words, objects with luminosity under T, i.e. further away, wont be considered.
         - 'help' produces this help.
         - 'quit' closes the module.
 

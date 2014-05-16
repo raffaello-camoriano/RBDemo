@@ -102,25 +102,56 @@ bool NearDetectorModule::respond(const Bottle &command, Bottle &reply)
             responseCode = Vocab::encode("nack");
         reply.addVocab(responseCode);
         return true;
+
     }else if (receivedCmd == "range"){
         bool ok = detector->setRange(command.get(1).asDouble());
         if (ok)
             responseCode = Vocab::encode("ack");
         else {
-            fprintf(stdout,"Threshold not set. \n");
+            fprintf(stdout,"Graspable Range not set. \n");
             responseCode = Vocab::encode("nack");
         }
         reply.addVocab(responseCode);
         return true;
+
+    }else if (receivedCmd == "thresh"){
+        bool ok = detector->setThresh(command.get(1).asDouble());
+        if (ok)
+            responseCode = Vocab::encode("ack");
+        else {
+            fprintf(stdout,"Threshold for disparity considered set. \n");
+            responseCode = Vocab::encode("nack");
+        }
+        reply.addVocab(responseCode);
+        return true;
+
+    }else if (receivedCmd == "verbose"){
+        bool ok = detector->setVerbose(command.get(1).asString());
+        if (ok)
+            responseCode = Vocab::encode("ack");
+        else {
+            fprintf(stdout,"Verbose can only be set to ON or OFF. \n");
+            responseCode = Vocab::encode("nack");
+        }
+        reply.addVocab(responseCode);
+        return true;
+
     }else if (receivedCmd == "help"){
         reply.addVocab(Vocab::encode("many"));
         reply.addString("Available commands are:");
-        reply.addString("origin X Y Z- set the coordinates from where the 3D distance is computed.");
-        reply.addString("range R - modifies the distance within which blobs are considered reachable.");
+        reply.addString("origin (int) (int) (int)- set the coordinates from where the 3D distance is computed.");        
+        reply.addString("range (double) - modifies the distance within which blobs are considered reachable.");
+        reply.addString("thresh (int) - to sets the lower limit of disparity in terms of luminosity (0-255) that is considered. In other words, objects with luminosity under T, i.e. further away, wont be considered.");
         reply.addString("help - produces this help.");
         reply.addString("quit - closes the module.");
+        responseCode = Vocab::encode("ack");
+        reply.addVocab(responseCode);
+        return true;
     } else if (receivedCmd == "quit"){
+        responseCode = Vocab::encode("ack");
+        reply.addVocab(responseCode);
         closing = true;
+        return true;
     }
 
     fprintf(stdout,"Code not accepted. \n");
@@ -163,7 +194,8 @@ bool NearThingsDetector::open()
     }else{
         origin = Scalar(0,0,0);
     }
-    fprintf(stdout,"Frame used : [%.2f,%.2f,%.2f]\n", origin[0], origin[1], origin[2] );	
+    fprintf(stdout,"Frame used : [%.2f,%.2f,%.2f]\n", origin[0], origin[1], origin[2] );
+    verbose = moduleRF->check("verbose", Value(false)).asBool();
     range = moduleRF->check("range", Value(0.5)).asDouble();
     backgroundThresh = moduleRF->check("backgroundThresh", Value(50)).asInt();		// threshold of intensity if the disparity image, under which info is ignored.
     cannyThresh = moduleRF->check("cannyThresh", Value(20)).asDouble();
@@ -248,14 +280,40 @@ bool NearThingsDetector::setRange(double r)
     return true;
 }
 
+bool NearThingsDetector::setThresh(int t)
+{
+    if ((t<0) ||(t>255)) {
+        fprintf(stdout,"Please select a valid luminance value (0-255). \n");
+        return false;
+    }
+    fprintf(stdout,"New Threshold is is : %d\n", t);
+    this->backgroundThresh = t;
+    return true;
+}
+
+bool NearThingsDetector::setVerbose(string verb)
+{
+    if (verb == "ON"){
+        verbose = true;
+        fprintf(stdout,"Verbose is : %s\n", verb.c_str());
+        return true;
+    } else if (verb == "OFF"){
+        verbose = false;
+        fprintf(stdout,"Verbose is : %s\n", verb.c_str());
+        return true;
+    }    
+    return false;
+}
+
 /**********************************************************/
 void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
 {
     yarp::os::Stamp ts;
     
-    mutex.wait();
-    cout << endl;
-    cout << "================ LOOP =================== "<< endl;
+    mutex.wait();    
+    if(verbose){
+        cout << endl;
+        cout << "================ LOOP =================== "<< endl;}
     Scalar blue = Scalar(255,0,0);
     Scalar green = Scalar(0,255,0);
     Scalar red = Scalar(0,0,255);
@@ -293,9 +351,9 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
 
     /* Filter disparity image to reduce noise */
     //GaussianBlur(disp, disp, Size(gaussSize,gaussSize), 1.5, 1.5);
-    //Mat threshIm;
-    //threshold(disp, threshIm, backgroundThresh, 1, CV_THRESH_BINARY);			// First
-    //multiply(disp, threshIm, disp);	
+    Mat threshIm;
+    threshold(disp, threshIm, backgroundThresh, 1, CV_THRESH_BINARY);			// First
+    multiply(disp, threshIm, disp);	
     //erode(disp,disp,Mat());
     //dilate(disp,disp, Mat());
     cvtColor(disp, imOut, CV_GRAY2BGR);						// Grayscale to BGR
@@ -337,7 +395,8 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
         
         /* check and plt the ROI returned by world*/
         Rect blobBox = boundingRect(contours[blobI]);
-        cout << " blob Box is  ["<< blobBox.tl().x << "," << blobBox.tl().y << "]:["<<blobBox.br().x << ","<<blobBox.br().y << "]"<< endl;
+        if(verbose)
+            {cout << " blob Box is  ["<< blobBox.tl().x << "," << blobBox.tl().y << "]:["<<blobBox.br().x << ","<<blobBox.br().y << "]"<< endl;}
         rectangle(imOut, blobBox, blue, 2 );
 
 
@@ -386,7 +445,9 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
         Point center2DCoords;
         Moments mu = moments( contours[blobI], false );		
         center2DCoords = Point2f( mu.m10/mu.m00 , mu.m01/mu.m00 );
-        circle( imOut, center2DCoords, 4, red, -1, 8, 0 );     
+        circle( imOut, center2DCoords, 4, red, -1, 8, 0 );
+        char strI[25]; sprintf_s(strI,"X:%d,Y:%d, Z:%d", center3DCoords[0], center3DCoords[1], center3DCoords[2]);
+        putText(imOut,strI,Point2f(center2DCoords.x-30,center2DCoords.y), FONT_HERSHEY_COMPLEX, 0.6, red,2);
 
         /* Get and return valid 3D coords of a point in the blob */
         /*
@@ -439,7 +500,8 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
         /* Compute the average distance of each detected blob */        
         Mat reachness(disp.size(), CV_8UC3, Scalar(0,0,0));
         Scalar avgDist = mean(dist3D,mask);
-        cout << "Closest blob is at avg distance " << avgDist[0] << endl;
+        if(verbose)
+            {cout << "Closest blob is at avg distance " << avgDist[0] << endl;}
         if (avgDist[0] > range){
             drawContours( reachness, contours, -1, red, CV_FILLED, 8);		// Paint red far blobs
         }else{
@@ -447,15 +509,9 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
         }
         addWeighted( imOut, 0.7, reachness, 0.3, 0.0, imOut);
 
-        /* Update and send the blob bounding box for world i*/        
-        /*
-        blobBB.addInt(blobBox.tl().x);
-        blobBB.addInt(blobBox.tl().y);
-        blobBB.addInt(blobBox.br().x);
-        blobBB.addInt(blobBox.br().y);
-        */
         /* Send Target coordinates*/
-        cout << "coords of the center of closest blob are : " << center3DCoords[0] << ", "<< center3DCoords[1]  << ", "<< center3DCoords[2] << endl;
+        if(verbose)
+            {cout << "coords of the center of closest blob are : " << center3DCoords[0] << ", "<< center3DCoords[1]  << ", "<< center3DCoords[2] << endl;}
         target.addDouble(center3DCoords[0]);
         target.addDouble(center3DCoords[1]);
         target.addDouble(center3DCoords[2]);  
