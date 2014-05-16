@@ -86,6 +86,7 @@ public:
 
     bool setOrigin(std::vector<double> origin);
     bool setRange(double range);
+    bool setThresh(int thresh);
     
     bool        open();
     void        close();

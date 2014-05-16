@@ -102,12 +102,22 @@ bool NearDetectorModule::respond(const Bottle &command, Bottle &reply)
             responseCode = Vocab::encode("nack");
         reply.addVocab(responseCode);
         return true;
-    }else if (receivedCmd == "range"){
+    }else if (receivedCmd == "reachRange"){
         bool ok = detector->setRange(command.get(1).asDouble());
         if (ok)
             responseCode = Vocab::encode("ack");
         else {
-            fprintf(stdout,"Threshold not set. \n");
+            fprintf(stdout,"Graspable Range not set. \n");
+            responseCode = Vocab::encode("nack");
+        }
+        reply.addVocab(responseCode);
+        return true;
+    }else if (receivedCmd == "thresh"){
+        bool ok = detector->setThresh(command.get(1).asDouble());
+        if (ok)
+            responseCode = Vocab::encode("ack");
+        else {
+            fprintf(stdout,"Threshold for disparity considered set. \n");
             responseCode = Vocab::encode("nack");
         }
         reply.addVocab(responseCode);
@@ -115,8 +125,9 @@ bool NearDetectorModule::respond(const Bottle &command, Bottle &reply)
     }else if (receivedCmd == "help"){
         reply.addVocab(Vocab::encode("many"));
         reply.addString("Available commands are:");
-        reply.addString("origin X Y Z- set the coordinates from where the 3D distance is computed.");
+        reply.addString("origin X Y Z- set the coordinates from where the 3D distance is computed.");        
         reply.addString("range R - modifies the distance within which blobs are considered reachable.");
+        reply.addString("thresh T - to sets the lower limit of disparity in terms of luminosity (0-255) that is considered. In other words, objects with luminosity under T, i.e. further away, wont be considered.");
         reply.addString("help - produces this help.");
         reply.addString("quit - closes the module.");
     } else if (receivedCmd == "quit"){
@@ -245,6 +256,17 @@ bool NearThingsDetector::setRange(double r)
     }
     fprintf(stdout,"New Range is : %.2f\n", r);
     this->range = r;
+    return true;
+}
+
+bool NearThingsDetector::setThresh(int t)
+{
+    if ((t<0) ||(t>255)) {
+        fprintf(stdout,"Please select a valid luminance value (0-255). \n");
+        return false;
+    }
+    fprintf(stdout,"New Threshold is is : %d\n", t);
+    this->backgroundThresh = t;
     return true;
 }
 
