@@ -66,6 +66,7 @@ private:
     int backgroundThresh;
     int cannyThresh;
     int minBlobSize;
+    bool verbose;
     
     int dispThreshRatioLow;
     int dispThreshRatioHigh;
@@ -87,6 +88,7 @@ public:
     bool setOrigin(std::vector<double> origin);
     bool setRange(double range);
     bool setThresh(int thresh);
+    bool setVerbose(std::string verb);
     
     bool        open();
     void        close();

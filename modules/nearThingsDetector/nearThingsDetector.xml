@@ -35,6 +35,7 @@
             <description>StereoDisparity disparity image</description>
         </input>
 
+        <!--
         <input>
             <type>ImageOfPixelFloat</type>
             <port carrier="udp">/nearThingsDetector/world:i</port>
@@ -42,7 +43,7 @@
             <priority>no</priority>
             <description>stereo disparity world image</description>
         </input>
-        
+        -->
         <!-- output data if available -->
         <output>
             <type>ImageOfPixelBgr</type>
