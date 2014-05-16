@@ -4,24 +4,25 @@
 # 
 
 CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
-SET(PROJECTNAME nearThingsDetector)
+SET(PROJECTNAME handCtrl)
 PROJECT(${PROJECTNAME})
 
-find_package(OpenCV)
-
 file(GLOB source src/*.cpp)
-file(GLOB header include/*.h)
+#file(GLOB header include/*.h)
 
 source_group("Source Files" FILES ${source})
-source_group("Header Files" FILES ${header})
+#source_group("Header Files" FILES ${header})
 
-include_directories(${PROJECT_SOURCE_DIR}/include
-                    ${YARP_INCLUDE_DIRS}
-                    ${OpenCV_INCLUDE_DIRS}
-                    )
+include_directories(${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS})
 
-add_executable(${PROJECTNAME} ${source} ${header})
+add_executable(${PROJECTNAME} ${source})
 
-target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} ${OpenCV_LIBRARIES})
+target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} actionPrimitives)
 
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
+
+##Debug: Print out all variables
+# get_cmake_property(_variableNames VARIABLES)
+# foreach (_variableName ${_variableNames})
+    # message(STATUS "${_variableName}=${${_variableName}}")
+# endforeach()
