@@ -14,7 +14,7 @@
         <!-- touchDetector -->    
         <port>/skinManager/skin_events:o</port>
         
-        <!-- graspingModule -->
+        <!-- handCtrl -->
         <port>/touchDetector/contact_pos:o</port>
         <port>/reachModule/handToBeClosed:o</port>        
     </dependencies>
@@ -29,11 +29,11 @@
         <tag>touchDetectorTag</tag>
     </module>
 
-    <!-- graspingModule -->
+    <!-- handCtrl -->
     <module>
-        <name>graspingModule</name>
+        <name>handCtrl</name>
         <node></node>
-        <tag>graspingModuleTag</tag>
+        <tag>handCtrlTag</tag>
     </module>
 
     <!-- Required connections -->    
@@ -45,12 +45,12 @@
 
     <connection>
         <from>/touchDetector/contact_pos:o</from>
-        <to>/graspingModule/handToBeClosed:i</to>
+        <to>/handCtrl/handToBeClosed:i</to>
     </connection>
 
     <connection>
         <from>/reachModule/handToBeClosed:o</from>
-        <to>/graspingModule/handToBeClosed:i</to>
+        <to>/handCtrl/handToBeClosed:i</to>
     </connection>
         
 </application>
