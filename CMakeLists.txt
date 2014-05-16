@@ -31,8 +31,3 @@ add_subdirectory(app)
 ## Uninstall
 icubcontrib_add_uninstall_target()
 
-########## application and config files copy
-file(GLOB conf_ini ${CMAKE_CURRENT_SOURCE_DIR}/app/conf/*.ini)
-file(GLOB app_xml ${CMAKE_CURRENT_SOURCE_DIR}/app/scripts/*.xml)
-yarp_install(FILES ${conf_ini} DESTINATION ${ICUBCONTRIB_CONTEXTS_INSTALL_DIR}/${PROJECTNAME})
-yarp_install(FILES ${app_xml} DESTINATION ${ICUBCONTRIB_APPLICATIONS_TEMPLATES_INSTALL_DIR}/${PROJECTNAME})

@@ -26,3 +26,5 @@ install(TARGETS ${PROJECTNAME} DESTINATION bin)
 # foreach (_variableName ${_variableNames})
     # message(STATUS "${_variableName}=${${_variableName}}")
 # endforeach()
+
+yarp_install(FILES ${PROJECTNAME}.xml DESTINATION ${ICUBCONTRIB_MODULES_INSTALL_DIR})
