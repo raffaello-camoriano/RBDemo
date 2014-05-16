@@ -34,7 +34,7 @@
             <priority>no</priority>
             <description>StereoDisparity disparity image</description>
         </input>
-        
+
         <input>
             <type>ImageOfPixelFloat</type>
             <port carrier="udp">/nearThingsDetector/world:i</port>
@@ -53,6 +53,11 @@
             <type>Bottle</type>
             <port carrier="tcp">/nearThingsDetector/target:o</port>
             <description> Coordinates of closest object</description>
+        </output>
+        <output>
+            <type>rpc</type>
+            <port carrier="udp">/nearThingsDetector/sfm:o</port>
+            <description> Output commands or data to communicate with SFM</description>
         </output>
     </data>
 

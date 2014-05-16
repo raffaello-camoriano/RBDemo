@@ -1,0 +1,60 @@
+<application>
+    <name>nearThingsDetector</name>
+    <module>
+        <name>nearThingsDetector</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 434.90) (y 178.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--x 350 --y 300</parameters>
+        <node>localhost</node>
+        <prefix>/imOut</prefix>
+        <geometry>(Pos (x 757.00) (y 241.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--x 0 --y 300</parameters>
+        <node>localhost</node>
+        <prefix>/disp</prefix>
+        <geometry>(Pos (x 433.00) (y 51.90))</geometry>
+    </module>
+    <connection>
+        <from external="true">/nearThingsDetector/img:o</from>
+        <to>/imOut/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 689.50) (y 260.00)) ((x 642.00) (y 259.00)) ((x 758.00) (y 260.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/nearThingsDetector/target:o</from>
+        <to external="true">/searchforiKinPort</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 785.00) (y 290.00)) ((x 664.00) (y 289.00)) ((x 935.00) (y 289.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/SFM/disp:o</from>
+        <to external="true">/nearThingsDetector/disp:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 357.50) (y 128.50)) ((x 289.00) (y 129.00)) ((x 447.00) (y 128.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/SFM/world:o</from>
+        <to external="true">/nearThingsDetector/world:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 354.50) (y 156.00)) ((x 282.00) (y 156.00)) ((x 448.00) (y 156.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/SFM/disp:o</from>
+        <to>/disp/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 351.00) (y 99.50)) ((x 289.00) (y 129.00)) ((x 434.00) (y 70.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/nearThingsDetector/sfm:o</from>
+        <to external="true">/SFM/box:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 404.00) (y 209.50)) ((x 642.00) (y 230.00)) ((x 187.00) (y 189.00))  )</geometry>
+    </connection>
+</application>
