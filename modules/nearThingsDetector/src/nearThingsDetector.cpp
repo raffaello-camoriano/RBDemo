@@ -144,8 +144,14 @@ bool NearDetectorModule::respond(const Bottle &command, Bottle &reply)
         reply.addString("thresh (int) - to sets the lower limit of disparity in terms of luminosity (0-255) that is considered. In other words, objects with luminosity under T, i.e. further away, wont be considered.");
         reply.addString("help - produces this help.");
         reply.addString("quit - closes the module.");
+        responseCode = Vocab::encode("ack");
+        reply.addVocab(responseCode);
+        return true;
     } else if (receivedCmd == "quit"){
+        responseCode = Vocab::encode("ack");
+        reply.addVocab(responseCode);
         closing = true;
+        return true;
     }
 
     fprintf(stdout,"Code not accepted. \n");
