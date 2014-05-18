@@ -189,13 +189,7 @@ public:
 
         // Get command string
         string receivedCmd = command.get(0).asString().c_str();
-        
-        // Stop current motion and clear actions queue
-        actionL->stopControl();
-        actionR->stopControl();
-        actionL->clearActionsQueue();
-        actionR->clearActionsQueue();
-
+       
         bool f;
         int responseCode;   //Will contain Vocab-encoded response
 
@@ -203,6 +197,12 @@ public:
 
         if (receivedCmd == "open_left_hand")
         {
+
+            // Stop current motion and clear actions queue
+            actionL->stopControl();
+            actionR->stopControl();
+            actionL->clearActionsQueue();
+            actionR->clearActionsQueue();
 
             actionL->pushAction("open_hand");
             actionL->checkActionsDone(f,true);
@@ -226,6 +226,12 @@ public:
 
         else if (receivedCmd == "open_right_hand")
         {
+            // Stop current motion and clear actions queue
+            actionL->stopControl();
+            actionR->stopControl();
+            actionL->clearActionsQueue();
+            actionR->clearActionsQueue();
+
             actionR->pushAction("open_hand");
             actionR->checkActionsDone(f,true);
             actionR->areFingersInPosition(f);    // Check for obstructing (grasped) objects
@@ -246,6 +252,12 @@ public:
 
         else if (receivedCmd == "close_right_hand")
         {
+            // Stop current motion and clear actions queue
+            actionL->stopControl();
+            actionR->stopControl();
+            actionL->clearActionsQueue();
+            actionR->clearActionsQueue();
+
             actionR->pushAction("close_hand");
             actionR->checkActionsDone(f,true);
             actionR->areFingersInPosition(f);    // Check for obstructing (grasped) objects
@@ -266,6 +278,12 @@ public:
 
         else if (receivedCmd == "close_left_hand")
         {
+            // Stop current motion and clear actions queue
+            actionL->stopControl();
+            actionR->stopControl();
+            actionL->clearActionsQueue();
+            actionR->clearActionsQueue();
+
             actionL->pushAction("close_hand");
             actionL->checkActionsDone(f,true);
             actionL->areFingersInPosition(f);    // Check for obstructing (grasped) objects
@@ -283,6 +301,23 @@ public:
                 reply.addVocab(responseCode);
             }
         }
+        else if (receivedCmd == "help")
+        {
+            reply.addVocab(Vocab::encode("many"));
+            reply.addString("Available commands are:");
+            reply.addString("open_left_hand");
+            reply.addString("open_right_hand");
+            reply.addString("close_left_hand");
+            reply.addString("close_right_hand");
+        }
+        else if (receivedCmd == "quit")
+        {
+            //Thread->mutex.post(); //remember the unlock your mutex(s)!
+
+            return false; //note also this
+        }
+        else
+            reply.addString("Invalid command, please type [help]");
 
         return true;
     }
@@ -622,7 +657,7 @@ int main(int argc, char *argv[])
     ResourceFinder rf;
     rf.setVerbose(true);
     rf.setDefaultConfigFile("handCtrl_config.ini");
-    rf.setDefaultContext("handCtrl");
+    rf.setDefaultContext("RBDemo");
     rf.setDefault("grasp_model_type","tactile");    // Check this parameter, does it correspond to the one stored in grasp_model_* -> name?
                                                     // If so, one default option for each hand may be needed.
     rf.setDefault("grasp_model_left_file","grasp_model_left.ini");
