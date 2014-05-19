@@ -138,13 +138,14 @@ bool NearDetectorModule::respond(const Bottle &command, Bottle &reply)
 
     }else if (receivedCmd == "help"){
         reply.addVocab(Vocab::encode("many"));
+        responseCode = Vocab::encode("ack");
         reply.addString("Available commands are:");
         reply.addString("origin (int) (int) (int)- set the coordinates from where the 3D distance is computed.");        
         reply.addString("range (double) - modifies the distance within which blobs are considered reachable.");
         reply.addString("thresh (int) - to sets the lower limit of disparity in terms of luminosity (0-255) that is considered. In other words, objects with luminosity under T, i.e. further away, wont be considered.");
         reply.addString("help - produces this help.");
         reply.addString("quit - closes the module.");
-        responseCode = Vocab::encode("ack");
+        
         reply.addVocab(responseCode);
         return true;
     } else if (receivedCmd == "quit"){
