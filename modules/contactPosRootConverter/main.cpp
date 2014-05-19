@@ -46,15 +46,17 @@ and converts its position into the root reference frame.
 
 \section portsc_sec Ports Created 
  
-- \e /contactPosRootConverter/contacts:i
+- \e /contactPosRootConverter/skin_events:i
+
+- \e /contactPosRootConverter/contact_info:o
 
 - \e /contactPosRootConverter/contact_pos:o
 
 - \e /contactPosRootConverter/rpc:i remote procedure call. 
     Recognized remote commands:
-    -'stop'
     -'help'
     -'set press_thresh <n>'
+    -'get press_thresh'
 
 \section in_files_sec Input Data Files
 None.
@@ -73,8 +75,9 @@ should look like as follows:
 \code 
 name                            contactPosRootConverter
 robot                           icub
-input_port                      /contacts:i
-output_port                     /contact_pos:o
+in_skin_events                  /skin_events:i
+out_contact_pos                 /contact_pos:o
+out_contact_info                /contact_info:o
 pressure_thresh                 15
 \endcode 
 
@@ -143,7 +146,8 @@ protected:
     unsigned int cntcTaxelNum;  // Number of activated taxels
     
     double pressureTh;          // Threshold on cntcPressure for a contact to be detected
-    bool onlyCoord;             // Flag to output only contact coords
+
+    Mutex mut;
 
 // CLASS VARIABLES - encoders related
 
@@ -169,24 +173,27 @@ protected:
     string name;
     string robot;
 
-    string inPortName, outPortName;
-    BufferedPort<skinContactList> inPort;   // Reads from /skinManager/skin_events:o
-    BufferedPort<Bottle> outPort;           // Writes the Bottle (SkinPart (cntcPosWRF))
-    
+    string inSkinEventsName;
+    string outContactPosName;
+    string outContactInfoName;
+    BufferedPort<skinContactList> inSkinEvents;   // Reads from /skinManager/skin_events:o
+    BufferedPort<Bottle> outContactPos;           // Writes the Bottle (SkinPart (cntcPosWRF))
+    BufferedPort<Bottle> outContactInfo;          // Writes the Bottle (cntcPosWRF)
+
 public:
 
     contactPosRootConverterWorker(const string &_name, const string &_robot,
-                                  const string &_inPortName, const string &_outPortName,
-                                  const double _pressureTh, const bool _onlyCoord) {
+                                  const string &_inSkinEventsName, const string &_outContactPosName, const string &_outContactInfoName,
+                                  const double _pressureTh) {
 
         name = _name;
         robot = _robot;
 
-        inPortName = _inPortName;
-        outPortName = _outPortName;
+        inSkinEventsName = _inSkinEventsName;
+        outContactPosName = _outContactPosName;
+        outContactInfoName = _outContactInfoName;
 
         setPressureTh(_pressureTh);
-        onlyCoord = _onlyCoord;
 
         cntctDetect = -1;
 
@@ -216,12 +223,18 @@ public:
 
     bool open() {
         
-        if (!inPort.open(inPortName.c_str())) {
-            fprintf(stdout, "%s: unable to open port %s\n", name.c_str(), inPortName.c_str());
+        if (!inSkinEvents.open(inSkinEventsName.c_str())) {
+            fprintf(stdout, "%s: unable to open port %s\n", name.c_str(), inSkinEventsName.c_str());
             return false;
         }
-        if (!outPort.open(outPortName.c_str())) {
-            fprintf(stdout, "%s: unable to open port %s\n", name.c_str(), outPortName.c_str());
+
+        if (!outContactPos.open(outContactPosName.c_str())) {
+            fprintf(stdout, "%s: unable to open port %s\n", name.c_str(), outContactPosName.c_str());
+            return false;
+        }
+
+        if (!outContactInfo.open(outContactInfoName.c_str())) {
+            fprintf(stdout, "%s: unable to open port %s\n", name.c_str(), outContactInfoName.c_str());
             return false;
         }
         
@@ -305,14 +318,15 @@ public:
 
     void interrupt() {
     
-        inPort.interrupt();
-        outPort.interrupt();
+        inSkinEvents.interrupt();
+        outContactPos.interrupt();
+        outContactInfo.interrupt();
 
     }
 
     void loop() {
  
-        skinContactList *cntctVec = inPort.read(false);
+        skinContactList *cntctVec = inSkinEvents.read(false);
             
         /* Process the skinContactList:
         case 0: NULL --> no new data --> doing nothing
@@ -323,6 +337,8 @@ public:
 
         if (cntctVec!=NULL && !cntctVec->empty()) {
             
+            mut.lock();
+
             for (skinContactList::iterator it = cntctVec->begin(); it!=cntctVec->end(); it++) {
                         
                 cntctPosLinkRF = it->getCoP();
@@ -341,15 +357,18 @@ public:
             else 
                 cntctDetect = -1;
 
+            mut.unlock();
+
             if (cntctDetect==0) {
 
                 // Prepare the output bottle
 
-                Bottle &output = outPort.prepare();
-                output.clear();
+                Bottle &outputInfo = outContactInfo.prepare();
+                Bottle &outputPos = outContactPos.prepare();
+                outputInfo.clear();
+                outputPos.clear();
 
-                if (!onlyCoord)
-                    output.addInt(cntctSkinPart);
+                outputInfo.addInt(cntctSkinPart);
 
                 // Convert the coordinates
                 
@@ -439,24 +458,18 @@ public:
 
                 fprintf(stdout,"CONTACT! skinPart: %s Link: %i Position: %s\n", cntctSkinPartV.c_str(), cntctLinkNum,cntctPosWRF.toString().c_str());
 
-                if (!onlyCoord) {
+                Bottle outputCoord;
+                outputCoord.addDouble(cntctPosWRF[0]);
+                outputCoord.addDouble(cntctPosWRF[1]);
+                outputCoord.addDouble(cntctPosWRF[2]);
+                outputInfo.addList() = outputCoord;
 
-                    Bottle outputCoord;
-                    outputCoord.addDouble(cntctPosWRF[0]);
-                    outputCoord.addDouble(cntctPosWRF[1]);
-                    outputCoord.addDouble(cntctPosWRF[2]);
+                outputPos.addDouble(cntctPosWRF[0]);
+                outputPos.addDouble(cntctPosWRF[1]);
+                outputPos.addDouble(cntctPosWRF[2]);
 
-                    output.addList() = outputCoord;
-
-                } else {
-
-                    output.addDouble(cntctPosWRF[0]);
-                    output.addDouble(cntctPosWRF[1]);
-                    output.addDouble(cntctPosWRF[2]);
-
-                }
-
-                outPort.write();
+                outContactPos.write();
+                outContactInfo.write();
 
             } 
 
@@ -466,10 +479,11 @@ public:
 
     bool close() {    
         
-        inPort.close();
-        outPort.close();
-        fprintf(stdout, "%s: closed ports %s and %s\n", name.c_str(), inPortName.c_str(), outPortName.c_str());
-        
+        inSkinEvents.close();
+        outContactPos.close();
+        outContactInfo.close();
+        fprintf(stdout, "%s: closed ports %s, %s and %s\n", name.c_str(), inSkinEventsName.c_str(), outContactPosName.c_str(), outContactInfoName.c_str());
+
         ddR.close();
         ddL.close();
         ddT.close();
@@ -483,13 +497,25 @@ public:
 
     }
 
-    void setPressureTh(const double _pressureTh) {
+    double setPressureTh(const double _pressureTh) {
+
+        mut.lock();
 
         pressureTh = _pressureTh;
         if (pressureTh<0 || pressureTh>255) {
             pressureTh = PRESSURE_THRESHOLD;
-            fprintf(stdout, "ATTENTION: pressure_thresh out of valid range --> using %f (default)\n", PRESSURE_THRESHOLD);
+            fprintf(stdout, "ATTENTION: requested pressure_thresh out of valid range\n");
         }
+
+        mut.unlock();
+
+        return pressureTh;
+
+    }
+
+    double getPressureTh() {
+
+        return pressureTh;
 
     }
 
@@ -505,16 +531,15 @@ protected:
     Port handlerPort;
     string handlerPortSubfix, handlerPortName;
 
-    string inputPortSubfix, inputPortName;
-    string outputPortSubfix, outputPortName;
+    string inputSkinEventsSubfix, inputSkinEventsName;
+    string outputContactPosSubfix, outputContactPosName;
+    string outputContactInfoSubfix, outputContactInfoName;
 
     double pressureThreshold;
 
     bool onlyCoordinates;
 
     contactPosRootConverterWorker *workerClass;
-
-    string helpMessage;
 
 public:
 
@@ -523,8 +548,9 @@ public:
         name = "contactPosRootConverter";
         robot = "icub";
         
-        inputPortSubfix = "/contacts:i";
-        outputPortSubfix    = "/contact_pos:o";
+        inputSkinEventsSubfix = "/skin_events:i";
+        outputContactPosSubfix    = "/contact_pos:o";
+        outputContactInfoSubfix    = "/contact_info:o";
 
         handlerPortSubfix = "/rpc:i";
 
@@ -534,21 +560,6 @@ public:
 
         workerClass = NULL;
 
-        helpMessage = string(getName().c_str());
-        helpMessage += "Options:\n";
-        helpMessage += "--context             path:  where to find the called resource (default RBDemo)\n";
-        helpMessage += "--from                from:  name of the .ini file (default contactPosRootConverter.ini)\n";
-        helpMessage += "--name                name:  name of the module (default contactPosRootConverter)\n";
-        helpMessage += "--robot               robot: name of the robot (default icub)\n";
-        helpMessage += "--input_port          input_port:  subfix of the input port (default /contacts:i)\n";
-        helpMessage += "--output_port         output_port:  subfix of the output port (default /contacts_pos:o)\n";
-        helpMessage += "--pressure_thresh     pressure_thresh: threshold on the avg pressure for a contact to be detected (default 15)\n";
-        helpMessage =+ "--only_coord          only_coord: flag to output only the contact coordinates without skin part (default no)\n";
-        helpMessage += "Commands:\n";
-        helpMessage += "stop                    stops the module\n";
-        helpMessage += "help                    prints options and commands\n";
-        helpMessage += "set pressure_thresh <n> sets pressure_thresh to <n> (double)\n";
-    
     }
 
     bool configure(yarp::os::ResourceFinder &rf) {
@@ -571,20 +582,15 @@ public:
         attach(handlerPort);
 
         // input & output port names
-        inputPortName   = "/" + getName(rf.check("input_port", Value(inputPortSubfix), "input_port (string)").asString());
-        outputPortName  = "/" + getName(rf.check("output_port", Value(outputPortSubfix), "output_port (string)").asString());
-        
+        inputSkinEventsName   = "/" + getName(rf.check("in_skin_events", Value(inputSkinEventsSubfix), "input_skin_events (string)").asString());
+        outputContactPosName  = "/" + getName(rf.check("out_contact_pos", Value(outputContactPosSubfix), "out_contact_pos (string)").asString());
+        outputContactInfoName  = "/" + getName(rf.check("out_contact_info", Value(outputContactInfoSubfix), "out_contact_info (string)").asString());
+
         // pressure threshold (set from either cmd line or .ini file or default defined value)
         pressureThreshold = rf.check("pressure_thresh",Value(PRESSURE_THRESHOLD),"pressure_thresh (double)").asDouble();
         
-        // flag to output only contact coordinates (set from either cmd line or .ini file or default defined value)
-        if (rf.check("only_coord"))
-            onlyCoordinates = true;
-        else
-            onlyCoordinates = false;
-        
         // instantiate worker class
-        workerClass = new contactPosRootConverterWorker(name, robot, inputPortName, outputPortName, pressureThreshold, onlyCoordinates);
+        workerClass = new contactPosRootConverterWorker(name, robot, inputSkinEventsName, outputContactPosName, outputContactInfoName, pressureThreshold);
         bool startOk = workerClass->open();
         if (!startOk) {
             delete workerClass;
@@ -647,51 +653,71 @@ public:
 
         if (command.size()>0) {
 
-            if (command.get(0).asString() == "stop") {
+            switch (command.get(0).asVocab()) {
 
-                // executes the same as close() method
+            case VOCAB4('h','e','l','p'): { 
 
-                handlerPort.close();
-                fprintf(stdout, "%s: closed port %s\n", name.c_str(), handlerPortName.c_str());
+                reply.addVocab(Vocab::encode("many"));
+                reply.addString("Available commands are:");
+                reply.addString("help");
+                reply.addString("set pressure_thresh <n> (double)");
+                reply.addString("get pressure_thresh (double)");
 
-                bool closeValue = true;
+                break;
 
-                if (workerClass) {
-                    closeValue = workerClass->close();
-                    fprintf(stdout, "%s: stopped worker class\n", name.c_str());
-                    delete workerClass;
-                    workerClass=NULL;
+            } case VOCAB3('s','e','t'): {
+                
+                if (command.get(1).asString() == "pressure_thresh") {
+                    
+                    reply.addVocab(ack);
+
+                    // set threshold at runtime
+                    pressureThreshold = command.get(2).asDouble();
+                    pressureThreshold = workerClass->setPressureTh(pressureThreshold);
+                    fprintf(stdout, "pressure_thresh set to %f\n", pressureThreshold);
+
+                } else {
+
+                    reply.addVocab(nack);
+
                 }
 
-                reply.addVocab(ack);
+                break;
 
-                return closeValue;
+            } case VOCAB3('g','e','t'): {
+                
+                if (command.get(1).asString() == "pressure_thresh") {
 
-            } else if (command.get(0).asString() == "help") {
+                    reply.addVocab(ack);
 
-                // print help message
+                    // return current threshold
+                    pressureThreshold = workerClass->getPressureTh();
+                    reply.addDouble(pressureThreshold);
 
-                fprintf(stdout, "%s", helpMessage.c_str());
+                } else {
 
-                reply.addVocab(ack);
+                    reply.addVocab(nack);
 
-            } else if ((command.get(0).asString() == "set") && (command.get(1).asString() == "pressure_thresh")) {
+                }
 
-                // set threshold at runtime
+                break;
 
-                pressureThreshold = command.get(2).asDouble();
-                workerClass->setPressureTh(pressureThreshold);
+            } default: {
 
-                reply.addVocab(ack);
+                reply.addVocab(nack);
+
             }
+
+            }
+
         } else {
-            
-            reply.addVocab(nack);
+
+        reply.addVocab(nack);
 
         }
 
         return true;
-    
+
     }
 
 };
@@ -708,14 +734,14 @@ int main(int argc, char *argv[]) {
     rf.configure(argc, argv );
 
     string optMessage = "Options:\n";
-    optMessage =+ " --context           path: where to find the called resource (default RBDemo)\n";
-    optMessage =+ " --from              from: name of the .ini file (default contactPosRootConverter.ini)\n";
-    optMessage =+ " --name              name: name of the module (default contactPosRootConverter)\n";
-    optMessage += " --robot             robot: name of the robot (default icub)\n";
-    optMessage =+ " --input_port        input_port: subfix of the input port (default /contacts:i)\n";
-    optMessage =+ " --output_port       output_port: subfix of the output port (default /contacts_pos:o)\n";
-    optMessage =+ " --pressure_thresh   pressure_thresh: threshold on the avg pressure for a contact to be detected (default 15)\n";
-    optMessage =+ " --only_coord        only_coord: flag to output only the contact coordinates without skin part (default no)\n";
+    optMessage += "--context           path: where to find the called resource (default RBDemo)\n";
+    optMessage += "--from              from: name of the .ini file (default contactPosRootConverter.ini)\n";
+    optMessage += "--name              name: name of the module (default contactPosRootConverter)\n";
+    optMessage += "--robot             robot: name of the robot (default icub)\n";
+    optMessage += "--in_skin_events    in_skin_events: subfix of input port (default /skin_events:i)\n";
+    optMessage += "--out_contact_pos   out_contact_pos: subfix of output port 1 (default /contact_pos:o)\n";
+    optMessage += "--out_contact_info  out_contact_info: subfix of output port 2 (default /contact_info:o)\n";
+    optMessage += "--pressure_thresh   pressure_thresh: threshold on the avg pressure for a contact to be detected (default 15)\n";
 
     if (rf.check("help")) {
         fprintf(stdout, "%s", optMessage.c_str());
