@@ -447,7 +447,7 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
         Moments mu = moments( contours[blobI], false );		
         center2DCoords = Point2f( mu.m10/mu.m00 , mu.m01/mu.m00 );
         circle( imOut, center2DCoords, 4, red, -1, 8, 0 );
-        char strI[25]; sprintf_s(strI,"X:%d,Y:%d, Z:%d", center3DCoords[0], center3DCoords[1], center3DCoords[2]);
+        char strI[25]; sprintf(strI,"X:%d,Y:%d, Z:%d", center3DCoords[0], center3DCoords[1], center3DCoords[2]);
         putText(imOut,strI,Point2f(center2DCoords.x-30,center2DCoords.y), FONT_HERSHEY_COMPLEX, 0.6, red,2);
 
         /* Get and return valid 3D coords of a point in the blob */
