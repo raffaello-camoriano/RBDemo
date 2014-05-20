@@ -166,6 +166,10 @@ protected:
 
     bool firstRun;
 
+    // Mutex declaration
+
+    Mutex actionMutex;  //Protects  the access to actionsQueue
+
     // Timeout for the hands to open after a closure required via inPort
     double leftHandTimeOut;
     double rightHandTimeOut;
@@ -195,47 +199,50 @@ public:
 
         reply.clear();  // Clear reply bottle
 
+        
         if (receivedCmd == "open_left_hand")
         {
+            actionMutex.lock(); //Protected area beginning
 
             // Stop current motion and clear actions queue
             actionL->stopControl();
-            actionR->stopControl();
             actionL->clearActionsQueue();
-            actionR->clearActionsQueue();
 
             actionL->pushAction("open_hand");
             actionL->checkActionsDone(f,true);
             actionL->areFingersInPosition(f);    // Check for obstructing (grasped) objects
-            
+
+            actionMutex.unlock(); //Protected area ending
+
             if (!f)
             {
                 //Encode response
                 responseCode = Vocab::encode("nack");
                 reply.addVocab(responseCode);
-                //reply.addVocab(VOCAB4('n','a','c','k'));
             }
             else
             {
                 //Encode response
                 responseCode = Vocab::encode("ack");
                 reply.addVocab(responseCode);
-                //reply.addVocab(VOCAB3('a','c','k'));
             }
         }
 
         else if (receivedCmd == "open_right_hand")
         {
+
+            actionMutex.lock(); //Protected area beginning
+
             // Stop current motion and clear actions queue
-            actionL->stopControl();
             actionR->stopControl();
-            actionL->clearActionsQueue();
             actionR->clearActionsQueue();
 
             actionR->pushAction("open_hand");
             actionR->checkActionsDone(f,true);
             actionR->areFingersInPosition(f);    // Check for obstructing (grasped) objects
-            
+
+            actionMutex.unlock(); //Protected area ending
+
             if (!f)
             {
                  //Encode response
@@ -252,16 +259,18 @@ public:
 
         else if (receivedCmd == "close_right_hand")
         {
+            actionMutex.lock(); //Protected area beginning
+
             // Stop current motion and clear actions queue
-            actionL->stopControl();
             actionR->stopControl();
-            actionL->clearActionsQueue();
             actionR->clearActionsQueue();
 
             actionR->pushAction("close_hand");
             actionR->checkActionsDone(f,true);
             actionR->areFingersInPosition(f);    // Check for obstructing (grasped) objects
-            
+
+            actionMutex.unlock(); //Protected area ending
+
             if (!f)
             {
                  //Encode response
@@ -278,16 +287,18 @@ public:
 
         else if (receivedCmd == "close_left_hand")
         {
+            actionMutex.lock(); //Protected area beginning
+
             // Stop current motion and clear actions queue
             actionL->stopControl();
-            actionR->stopControl();
             actionL->clearActionsQueue();
-            actionR->clearActionsQueue();
 
             actionL->pushAction("close_hand");
             actionL->checkActionsDone(f,true);
             actionL->areFingersInPosition(f);    // Check for obstructing (grasped) objects
-            
+
+            actionMutex.unlock(); //Protected area ending
+
             if (!f)
             {
                  //Encode response
@@ -305,6 +316,8 @@ public:
         {
             reply.addVocab(Vocab::encode("many"));
             reply.addString("Available commands are:");
+            reply.addString("help");
+            reply.addString("quit");
             reply.addString("open_left_hand");
             reply.addString("open_right_hand");
             reply.addString("close_left_hand");
@@ -312,12 +325,14 @@ public:
         }
         else if (receivedCmd == "quit")
         {
-            //Thread->mutex.post(); //remember the unlock your mutex(s)!
+
+            reply.addString("Quitting.");
+            //actionMutex.unlock(); // Unlock the mutex
 
             return false; //note also this
         }
         else
-            reply.addString("Invalid command, please type [help]");
+            reply.addString("Invalid command, type [help] for a list of accepted commands.");
 
         return true;
     }
@@ -340,16 +355,6 @@ public:
         // Set closure timeouts
         leftHandTimeOut = rf.findGroup("general").find("closure_timeout_left").asDouble();
         rightHandTimeOut = rf.findGroup("general").find("closure_timeout_right").asDouble();
-
-        // ADD CHECK!!!
-
-        /*
-            USE:
-        virtual Value yarp::os::Searchable::check 	( 	const ConstString &  	key,
-		const Value &  	fallback,
-		const ConstString &  	comment = ""	 
-	    ) 	
-        */
 
         // Parsing general config options for both hands
 
@@ -626,8 +631,9 @@ public:
         // since a call to checkActionsDone() blocks
         // the execution until it's done, we need to 
         // take control and exit from the waiting state
+
         actionL->syncCheckInterrupt(true);        
-        actionR->syncCheckInterrupt(true);        
+        actionR->syncCheckInterrupt(true);
 
         // Interrupt any blocking reads on the input port
         inPort.interrupt();
