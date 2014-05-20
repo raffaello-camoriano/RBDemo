@@ -1,0 +1,65 @@
+<module>
+    <!-- module's name should match its executable file's name. -->
+    <name>contactPosRootConverter</name>
+    <description>Converts the position of a skinContact from the skinManager into the root Reference Frame</description>
+    <version>1.0</version>
+
+    <!-- <arguments> can have multiple <param> tags-->
+    <arguments>
+    <param desc="Name of the module" default="contactPosRootConverter"> name</param>
+	<param desc="Name of the robot" default="icub"> robot</param>
+    <param desc="Sub-path from \c $ICUB_ROOT/app to the configuration file" default="RBDemo"> context </param>
+	<param desc="Configuration file" default="contactPosRootConverter.ini"> from </param>
+    </arguments>
+
+    <!-- <authors> can have multiple <author> tags. -->
+    <authors>
+	  <author email="Giulia.Pasquale@iit.it">Giulia Pasquale</author>
+    </authors>
+
+     <!-- <data> can have multiple <input> or <output> tags. -->
+     <data>
+        <!-- input data if available -->
+        <input type="service">
+            <type>rpc</type>
+            <port carrier="tcp">/contactPosRootConverter/rpc:i</port>
+            <description>takes RPC commands from Human or stateMachine</description>
+        </input>
+        
+        <input>
+            <type>Bottle</type>
+            <port carrier="tcp">/contactPosRootConverter/skin_events:i</port>
+            <required>no</required>
+            <priority>no</priority>
+            <description>skinContactList that is list of skin contacts</description>
+        </input>
+
+        <!-- output data if available -->
+        <output>
+            <type>Bottle</type>
+            <port carrier="tcp">/contactPosRootConverter/contact_pos:o</port>
+            <description>Bottle with the 3D coordinates of the contact in root RF</description>
+        </output>
+        <output>
+            <type>Bottle</type>
+            <port carrier="tcp">/contactPosRootConverter/contact_info:o</port>
+            <description>Bottle with the skinPart and the 3D coordinates</description>
+        </output>
+     
+    </data>
+
+    <dependencies>
+        <computer>
+        </computer>
+    </dependencies>
+
+    <!-- specific libraries or header files which are used for development -->
+    <development>
+        <header></header>
+        <library>YARP</library>
+		<library>skinDynLib</library>
+		<library>iKin</library>
+    </development>
+
+</module>
+
