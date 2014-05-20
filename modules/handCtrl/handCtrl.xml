@@ -1,7 +1,7 @@
 <module>
     <!-- module's name should match its executable file's name. -->
     <name>handCtrl</name>
-    <description></description>
+    <description>Opens and closes the hands.</description>
     <version>1.0</version>
 
     <!-- <arguments> can have multiple <param> tags-->
@@ -34,7 +34,7 @@
         </input>
         
         <input>
-            <type>rpc</type>
+            <type></type>
             <port>/handCtrl/rpc:i</port>
             <required>no</required>
             <priority>no</priority>
@@ -52,7 +52,6 @@
 
     <!-- specific libraries or header files which are used for development -->
     <development>
-        <header></header>
         <library>YARP</library>
         <library>ActionPrimitives</library>
         <library>SkinDyn</library>
