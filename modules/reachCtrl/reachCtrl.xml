@@ -1,0 +1,63 @@
+<module>
+    <!-- module's name should match its executable file's name. -->
+    <name>reachCtrl</name>
+    <description>Module that makes the iCub reach with its hand to a point specified in Cartesian coordinates and then sends a trigger for grasp on the output.</description>
+    <version>1.0</version>
+
+    <!-- <arguments> can have multiple <param> tags-->
+    <arguments>
+    <!--
+    <param desc="Name of the module" default="reachCtrl"> name</param>
+    <param desc="Sub-path from \c $ICUB_ROOT/app to the configuration file" default="reachCtrl/conf"> context </param>
+	<param desc="Configuration file" default="config.ini"> from </param>
+    -->
+    </arguments>
+
+    <!-- <authors> can have multiple <author> tags. -->
+    <authors>
+	  <author email=""> Matej Hoffmann</author>
+    </authors>
+
+     <!-- <data> can have multiple <input> or <output> tags. -->
+     <data>
+        <!-- input data if available -->
+        <input>
+            <type>Bottle</type>
+            <port>/reachCtrl/reachingTarget:i</port>
+            <required>no</required>
+            <priority>no</priority>
+            <description>receives a bottle containing three coordinates of the point to be reached in robot root FoR</description>
+        </input>
+
+
+        <!-- output data if available -->
+        <output>
+            <type>Bottle</type>
+            <port carrier="tcp">/reachCtrl//handToBeClosed:o</port>
+            <description> sends an int derived from the SkinPart enum class - SKIN_LEFT_HAND == 1 or SKIN_RIGHT_HAND == 4</description>
+        </output>
+    </data>
+
+    <services>
+        <server>
+            <port>
+                <port>/reachCtrl/rpc:i</port>
+                <description>can be used to issue the targets for the robot in the format "go x y z"; the "home" command is also recognized  </description>
+            </port>
+        </server>
+    </services>
+    
+    
+    <dependencies>
+        <computer>
+        </computer>
+    </dependencies>
+
+    <!-- specific libraries or header files which are used for development -->
+    <development>
+        <header></header>
+        <library>YARP</library>
+    </development>
+
+</module>
+
