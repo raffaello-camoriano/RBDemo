@@ -21,3 +21,6 @@ TARGET_LINK_LIBRARIES(${PROJECTNAME}  icubmod
                                      ${YARP_LIBRARIES})
                                      
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
+
+
+yarp_install(FILES ${PROJECTNAME}.xml DESTINATION ${ICUBCONTRIB_MODULES_INSTALL_DIR})
