@@ -53,7 +53,7 @@ Cartesian interface is required.
 
 Input ports
 - \e /<modName>/reachingTarget:i receives a bottle containing three coordinates of the point to be reached in robot root FoR
-- \e /<modName>/reachCtrl/rpc can be used to issue the targets for the robot in the format "go x y z"; the "home" command is also recognized 
+- \e /<modName>/reachCtrl/rpc:i can be used to issue the targets for the robot in the format "go x y z"; the "home" command is also recognized 
 
 Output ports
 - \e /<modName>/handToBeClosed:o sends an int derived from the SkinPart enum class - SKIN_LEFT_HAND == 1 or SKIN_RIGHT_HAND == 4
@@ -1125,7 +1125,7 @@ public:
             return false;
         }
 
-        rpcPort.open(getName("/rpc"));
+        rpcPort.open(getName("/rpc:i"));
         attach(rpcPort);
 
         return true;
