@@ -572,8 +572,10 @@ public:
         robot = rf.check("robot", Value(robot), "robot (string)").asString();
 
         // rpc port name
-        handlerPortName = "/" + getName() + handlerPortSubfix;
-        
+        handlerPortName = "/";
+        handlerPortName.append(getName().c_str());
+        handlerPortName.append(handlerPortSubfix);
+ 
         // open & attach rpc port
         if (!handlerPort.open(handlerPortName.c_str())) {
             fprintf(stdout, "%s: Unable to open port %s\n", (getName()).c_str(), handlerPortName.c_str());
@@ -582,9 +584,12 @@ public:
         attach(handlerPort);
 
         // input & output port names
-        inputSkinEventsName   = "/" + getName(rf.check("in_skin_events", Value(inputSkinEventsSubfix), "input_skin_events (string)").asString());
-        outputContactPosName  = "/" + getName(rf.check("out_contact_pos", Value(outputContactPosSubfix), "out_contact_pos (string)").asString());
-        outputContactInfoName  = "/" + getName(rf.check("out_contact_info", Value(outputContactInfoSubfix), "out_contact_info (string)").asString());
+        inputSkinEventsName   = "/";
+        inputSkinEventsName.append(getName(rf.check("in_skin_events", Value(inputSkinEventsSubfix), "input_skin_events (string)").asString()));
+        outputContactPosName  = "/" ;
+        outputContactPosName.append(getName(rf.check("out_contact_pos", Value(outputContactPosSubfix), "out_contact_pos (string)").asString()));
+        outputContactInfoName  = "/";
+        outputContactInfoName.append(getName(rf.check("out_contact_info", Value(outputContactInfoSubfix), "out_contact_info (string)").asString()));
 
         // pressure threshold (set from either cmd line or .ini file or default defined value)
         pressureThreshold = rf.check("pressure_thresh",Value(PRESSURE_THRESHOLD),"pressure_thresh (double)").asDouble();

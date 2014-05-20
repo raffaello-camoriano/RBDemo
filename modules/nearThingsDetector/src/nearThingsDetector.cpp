@@ -33,6 +33,7 @@ bool NearDetectorModule::configure(yarp::os::ResourceFinder &rf)
     handlerPortName =  "/";
     handlerPortName += getName();
     handlerPortName +=  "/rpc:i";
+
     if (!rpcInPort.open(handlerPortName.c_str()))    {
         fprintf(stdout, "%s : Unable to open input RPC port %s\n", getName().c_str(), handlerPortName.c_str());
         return false;
