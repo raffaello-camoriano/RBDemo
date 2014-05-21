@@ -1,0 +1,54 @@
+<application>
+    <name>nearThingsDetectorApp</name>
+    <module>
+        <name>nearThingsDetector</name>
+        <parameters></parameters>
+        <node>localhost</node>
+        <prefix></prefix>
+        <geometry>(Pos (x 434.90) (y 178.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--x 350 --y 300</parameters>
+        <node>localhost</node>
+        <prefix>/imOut</prefix>
+        <geometry>(Pos (x 787.00) (y 150.90))</geometry>
+    </module>
+    <module>
+        <name>yarpview</name>
+        <parameters>--x 0 --y 300</parameters>
+        <node>localhost</node>
+        <prefix>/disp</prefix>
+        <geometry>(Pos (x 433.00) (y 51.90))</geometry>
+    </module>
+    <connection>
+        <from>/nearThingsDetector/img:o</from>
+        <to>/imOut/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 718.00) (y 183.00)) ((x 669.00) (y 197.00)) ((x 788.00) (y 169.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/nearThingsDetector/target:o</from>
+        <to external="true">/searchforiKinPort</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 748.00) (y 229.00)) ((x 669.00) (y 222.00)) ((x 848.00) (y 236.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/SFM/disp:o</from>
+        <to>/nearThingsDetector/disp:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 349.50) (y 202.00)) ((x 285.00) (y 181.00)) ((x 435.00) (y 234.00))  )</geometry>
+    </connection>
+    <connection>
+        <from external="true">/SFM/disp:o</from>
+        <to>/disp/yarpview/img:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 349.00) (y 126.00)) ((x 285.00) (y 181.00)) ((x 434.00) (y 70.00))  )</geometry>
+    </connection>
+    <connection>
+        <from>/nearThingsDetector/sfm:o</from>
+        <to external="true">/SFM/rpc</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 710.50) (y 288.50)) ((x 669.00) (y 247.00)) ((x 773.00) (y 330.00))  )</geometry>
+    </connection>
+</application>
