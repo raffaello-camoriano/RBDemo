@@ -36,7 +36,7 @@ end
 -- and update() will never be called
 PortMonitor.accept = function(thing)
     print("selector: PortMonitor.accept()")
-    if thing.get(0) == 1 || thing.get(0) == 4 then
+    if (thing:asBottle():toInt() == 1 or thing:asBottle():toInt() == 4) then
         return true
     else
         return false
