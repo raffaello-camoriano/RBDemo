@@ -49,7 +49,6 @@ The module is assumed to work on the output of a disparity computation module, w
 
 Input ports
 - \e /<modName>/disp:i receives a BRG image containing the disparity of the image obtained through stereo vision.
-- \e /<modName>/world:i receives a PixelRgbFloat image where the three channels correspond to the X Y Z coordinates of each point in the disparity image
 - \e /<modName>/rpc:i can be used to issue commands to the robot.
     Recognized remote commands:
         - 'origin X Y Z' to modify the point in the robot frame from which the distance is computed.

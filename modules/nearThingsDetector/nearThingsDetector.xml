@@ -57,7 +57,7 @@
         </output>
         <output>
             <type>rpc</type>
-            <port carrier="udp">/nearThingsDetector/sfm:o</port>
+            <port carrier="tcp">/nearThingsDetector/sfm:o</port>
             <description> Output commands or data to communicate with SFM</description>
         </output>
     </data>

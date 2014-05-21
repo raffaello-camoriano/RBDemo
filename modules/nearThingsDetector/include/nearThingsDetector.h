@@ -57,7 +57,7 @@ private:
     //yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgbFloat> > worldInPort;	// input Port with info of 3D world    
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> >	imageOutPort;	// output image Port with info drawn over
     yarp::os::BufferedPort<yarp::os::Bottle>							targetOutPort;	// Send coordinates of closest point.      
-    yarp::os::Port                          		                    sfmOutPort;		// output rpc port to send queries to SFM
+    yarp::os::RpcClient                                                 sfmOutPort;		// output rpc port to send queries to SFM
 
     /* Pointer to the Resource Finder */
     yarp::os::ResourceFinder *moduleRF;
@@ -67,6 +67,7 @@ private:
     int cannyThresh;
     int minBlobSize;
     bool verbose;
+    float confidenceMin;
     
     int dispThreshRatioLow;
     int dispThreshRatioHigh;
@@ -74,6 +75,15 @@ private:
     int gaussSize;
     float range;
     cv::Scalar origin;
+
+protected:
+    bool observableTarget(const cv::Scalar target_pos);
+
+    struct {
+        double minX, maxX;
+        double minY, maxY;
+        double minZ, maxZ;
+    } observableSpace;
 
     //cv::Rect blobBox; //(int x=5, int y=5, int width=5, int height=5); //create and dumm initialize blob bounding box
 	
@@ -89,6 +99,7 @@ public:
     bool setRange(double range);
     bool setThresh(int thresh);
     bool setVerbose(std::string verb);
+    bool setConfMin(float confid);
     
     bool        open();
     void        close();

@@ -126,6 +126,18 @@ bool NearDetectorModule::respond(const Bottle &command, Bottle &reply)
         reply.addVocab(responseCode);
         return true;
 
+    }else if (receivedCmd == "confidence"){
+        bool ok = detector->setConfMin(command.get(1).asDouble());
+        if (ok)
+            responseCode = Vocab::encode("ack");
+        else {
+            fprintf(stdout,"Confidence value given out of limits [0-1]. \n");
+            responseCode = Vocab::encode("nack");
+        }
+        reply.addVocab(responseCode);
+        return true;
+
+
     }else if (receivedCmd == "verbose"){
         bool ok = detector->setVerbose(command.get(1).asString());
         if (ok)
@@ -144,6 +156,8 @@ bool NearDetectorModule::respond(const Bottle &command, Bottle &reply)
         reply.addString("origin (int) (int) (int)- set the coordinates from where the 3D distance is computed.");        
         reply.addString("range (double) - modifies the distance within which blobs are considered reachable.");
         reply.addString("thresh (int) - to sets the lower limit of disparity in terms of luminosity (0-255) that is considered. In other words, objects with luminosity under T, i.e. further away, wont be considered.");
+        reply.addString("confidence (double) - Sets the confidence value [0-1] over which the obtained coordinates are sent.");
+        reply.addString("verbose ON/OFF - Sets active the printouts of the program, for debugging or visualization.");
         reply.addString("help - produces this help.");
         reply.addString("quit - closes the module.");
         
@@ -200,14 +214,18 @@ bool NearThingsDetector::open()
     verbose = moduleRF->check("verbose", Value(false)).asBool();
     range = moduleRF->check("range", Value(0.5)).asDouble();
     backgroundThresh = moduleRF->check("backgroundThresh", Value(50)).asInt();		// threshold of intensity if the disparity image, under which info is ignored.
+    confidenceMin = moduleRF->check("confidenceMin", Value(0.8)).asDouble();		
     cannyThresh = moduleRF->check("cannyThresh", Value(20)).asDouble();
     minBlobSize = moduleRF->check("minBlobSize", Value(400)).asInt();
     gaussSize = moduleRF->check("gaussSize", Value(5)).asInt();
     dispThreshRatioLow = moduleRF->check("dispThreshRatioLow", Value(10)).asInt();    
     dispThreshRatioHigh = moduleRF->check("dispThreshRatioHigh", Value(20)).asInt();
 
-    //blobBox = Rect(0,0,320,240); // Dumm initialization
-    
+    // XXX Move to ini file
+    observableSpace.minX=-2; observableSpace.maxX=-0.05;
+    observableSpace.minY=-0.5; observableSpace.maxY=0.5;
+    observableSpace.minZ=-0.3; observableSpace.maxZ=0.3;
+        
     bool ret=true;
     //create all ports
     fprintf(stdout,"Opening ports\n");
@@ -246,8 +264,7 @@ void NearThingsDetector::close()
 
 /**********************************************************/
 void NearThingsDetector::interrupt()
-{
-	
+{	
     fprintf(stdout,"cleaning up...\n");
     fprintf(stdout,"attempting to interrupt ports\n");
     sfmOutPort.interrupt();
@@ -288,7 +305,7 @@ bool NearThingsDetector::setThresh(int t)
         fprintf(stdout,"Please select a valid luminance value (0-255). \n");
         return false;
     }
-    fprintf(stdout,"New Threshold is is : %d\n", t);
+    fprintf(stdout,"New Threshold is : %d\n", t);
     this->backgroundThresh = t;
     return true;
 }
@@ -305,6 +322,30 @@ bool NearThingsDetector::setVerbose(string verb)
         return true;
     }    
     return false;
+}
+
+bool NearThingsDetector::setConfMin(float confid)
+{
+    if ((confid<0) ||(confid>1)) {
+        fprintf(stdout,"Please select a valid confidence value [0-1]. \n");
+        return false;
+    }
+    fprintf(stdout,"New minimum confidence Value : %f\n", confid);
+    this->confidenceMin = confid;
+    return true;
+}
+
+
+bool NearThingsDetector::observableTarget(const Scalar target_pos){
+    if( (target_pos[0] < observableSpace.minX) || (target_pos[0] > observableSpace.maxX) ||
+        (target_pos[1] < observableSpace.minY) || (target_pos[1] > observableSpace.maxY) ||
+        (target_pos[2] < observableSpace.minZ) || (target_pos[2] > observableSpace.maxZ)){
+        printf("Warning: target %f %f %f is outside of observable area.\n",target_pos[0],target_pos[1],target_pos[2]);
+        return false;          
+    }
+    else{
+            return true;
+    }
 }
 
 /**********************************************************/
@@ -416,7 +457,7 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
                     cmdSFM.addString("Point");
                     cmdSFM.addInt(x);
                     cmdSFM.addInt(y);
-                    sfmOutPort.write(cmdSFM, responseSFM);             
+                    sfmOutPort.write(cmdSFM, responseSFM);          // XXX Check why this command blocks execution
                     //printf("Got response: %s\n", responseSFM.toString().c_str());                    
 
                     // Read the 3D coords and compute the distance to the set reference frame origin
@@ -440,8 +481,14 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
         threshold(dist3D, zeroMask, 0, 1, 0);                           // Create a mask to ignore 0 values
         Mat mask(disp.size(), CV_8UC1, Scalar(0));                      // Perform an AND operation on the two masks and the original
         multiply(cntMask, zeroMask, mask, 1, CV_8UC1);                  // Compute jont mask: pixels within contours and with valid (non-zero) distances 
-               
-        Scalar center3DCoords = mean(worldCoords, mask);			    // Accpount only for coords where worldCoords data is valid
+             
+        Scalar center3DCoords = mean(worldCoords, mask);			    // Accpount only for coords where worldCoords data is valid  
+
+
+        /* Get a measure of the confidence on the computation of the coordinates as the ratio between the number of valid points and the whole area of the blob*/
+        int numValidPoints = countNonZero(mask);
+        int numPoints =  contourArea(contours[blobI]);
+        float confidence = (float)numValidPoints/ (float)numPoints;
 
         /* Get and draw centroid of the closest blob */ 
         Point center2DCoords;
@@ -515,9 +562,12 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
         /* Send Target coordinates*/
         if(verbose)
             {cout << "coords of the center of closest blob are : " << center3DCoords[0] << ", "<< center3DCoords[1]  << ", "<< center3DCoords[2] << endl;}
-        target.addDouble(center3DCoords[0]);
-        target.addDouble(center3DCoords[1]);
-        target.addDouble(center3DCoords[2]);  
+
+        if (observableTarget(center3DCoords) && confidence>confidenceMin){
+            target.addDouble(center3DCoords[0]);
+            target.addDouble(center3DCoords[1]);
+            target.addDouble(center3DCoords[2]);  
+            }
     }
     
     mutex.post();
