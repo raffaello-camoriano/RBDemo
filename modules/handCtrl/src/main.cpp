@@ -325,9 +325,8 @@ public:
         }
         else if (receivedCmd == "quit")
         {
-
             reply.addString("Quitting.");
-            //actionMutex.unlock(); // Unlock the mutex
+            actionMutex.unlock(); // Unlock the mutex to avoid deadlocks and allow a smooth stop
 
             return false; //note also this
         }
@@ -555,6 +554,8 @@ public:
 
             if ( handSide == iCub::skinDynLib::SKIN_LEFT_HAND)  // Left hand
             {
+                actionMutex.lock(); //Protected area beginning
+
                 // Push closure action and wait for completion
                 actionL->pushAction("close_hand");
                 actionL->checkActionsDone(fl,true);
@@ -578,7 +579,9 @@ public:
                 actionL->checkActionsDone(fl,true);
 
                 // Check for obstructing objects
-                actionL->areFingersInPosition(fl);          
+                actionL->areFingersInPosition(fl);
+
+                actionMutex.unlock(); //Protected area ending
 
                 if (!fl)
                     cout<<"Left hand obstructed while opening"<<endl;
@@ -588,6 +591,9 @@ public:
             }
             else if ( handSide == iCub::skinDynLib::SKIN_RIGHT_HAND)
             {
+ 
+                actionMutex.lock(); //Protected area beginning
+                
                 // Right hand
                 actionR->pushAction("close_hand");
                 actionR->checkActionsDone(fr,true);
@@ -614,11 +620,12 @@ public:
                 // Check for obstructing (grasped) objects
                 actionR->areFingersInPosition(fr);
 
+                actionMutex.unlock(); //Protected area ending
+
                 if (!fr)
                     cout<<"Right hand obstructed while opening"<<endl;
                 else
                     cout<<"Right hand fully opened"<<endl;
-
             }              
         }
 
@@ -632,7 +639,7 @@ public:
         // the execution until it's done, we need to 
         // take control and exit from the waiting state
 
-        actionL->syncCheckInterrupt(true);        
+        actionL->syncCheckInterrupt(true);
         actionR->syncCheckInterrupt(true);
 
         // Interrupt any blocking reads on the input port

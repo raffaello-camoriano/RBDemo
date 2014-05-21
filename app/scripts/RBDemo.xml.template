@@ -46,11 +46,13 @@
     <connection>
         <from>/touchDetector/contact_pos:o</from>
         <to>/handCtrl/handToBeClosed:i</to>
+        <protocol>tcp+recv.portmonitor+script.lua+context.RBDemo+file.handCtrlMonitor</protocol>
     </connection>
 
     <connection>
         <from>/reachModule/handToBeClosed:o</from>
         <to>/handCtrl/handToBeClosed:i</to>
+        <protocol>tcp+recv.portmonitor+script.lua+context.RBDemo+file.handCtrlMonitor</protocol>
     </connection>
         
 </application>

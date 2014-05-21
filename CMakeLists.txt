@@ -26,7 +26,7 @@ add_subdirectory(modules)
 add_subdirectory(app)
 
 ## Add this instruction IF AND ONLY IF the project uses libraries.
-## icubcontrib_finalize_export (${PROJECT_NAME})  
+#icubcontrib_finalize_export (${PROJECT_NAME})  
 
 ## Uninstall
 icubcontrib_add_uninstall_target()
