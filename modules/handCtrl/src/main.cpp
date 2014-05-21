@@ -503,12 +503,11 @@ public:
         
         // Left hand
         actionL->pushAction("open_hand");
-        actionL->checkActionsDone(f,true);
-        
         // Right hand
         actionR->pushAction("open_hand");
+        //Wait for completion of both
+        actionL->checkActionsDone(f,true);
         actionR->checkActionsDone(f,true);
-        
     }
 
     // we don't need a thread since the actions library already
