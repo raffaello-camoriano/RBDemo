@@ -17,14 +17,14 @@ include_directories(${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS})
 
 add_executable(${PROJECTNAME} ${source})
 
-target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} actionPrimitives skinDynLib)
+target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} actionPrimitives)
 
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
 
-#Debug: Print out all variables
-get_cmake_property(_variableNames VARIABLES)
-foreach (_variableName ${_variableNames})
-    message(STATUS "${_variableName}=${${_variableName}}")
-endforeach()
+##Debug: Print out all variables
+# get_cmake_property(_variableNames VARIABLES)
+# foreach (_variableName ${_variableNames})
+    # message(STATUS "${_variableName}=${${_variableName}}")
+# endforeach()
 
 yarp_install(FILES ${PROJECTNAME}.xml DESTINATION ${ICUBCONTRIB_MODULES_INSTALL_DIR})

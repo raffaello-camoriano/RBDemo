@@ -351,9 +351,10 @@ public:
             return false;
         }
 
-        // Set closure timeouts
-        leftHandTimeOut = rf.findGroup("general").find("closure_timeout_left").asDouble();
-        rightHandTimeOut = rf.findGroup("general").find("closure_timeout_right").asDouble();
+        // Set closure timeouts. Default value: 5 seconds
+
+        leftHandTimeOut = rf.findGroup("general").check("closure_timeout_left",Value(5.0)).asDouble();
+        rightHandTimeOut = rf.findGroup("general").check("closure_timeout_right",Value(5.0)).asDouble();
 
         // Parsing general config options for both hands
 
