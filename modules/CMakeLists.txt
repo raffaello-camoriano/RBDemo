@@ -5,6 +5,6 @@
 add_subdirectory(contactPosRootConverter)
 ##add_subdirectory(faceDetector)
 add_subdirectory(handCtrl)
-add_subdirectory(nearThingsDetector)
+##add_subdirectory(nearThingsDetector)
 add_subdirectory(reachCtrl)
 

@@ -33,7 +33,7 @@
         <!-- output data if available -->
         <output>
             <type>Bottle</type>
-            <port carrier="tcp">/reachCtrl//handToBeClosed:o</port>
+            <port carrier="tcp">/reachCtrl/handToBeClosed:o</port>
             <description> sends an int derived from the SkinPart enum class - SKIN_LEFT_HAND == 1 or SKIN_RIGHT_HAND == 4</description>
         </output>
     </data>

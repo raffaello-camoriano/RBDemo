@@ -339,8 +339,9 @@ bool NearThingsDetector::setConfMin(float confid)
 bool NearThingsDetector::observableTarget(const Scalar target_pos){
     if( (target_pos[0] < observableSpace.minX) || (target_pos[0] > observableSpace.maxX) ||
         (target_pos[1] < observableSpace.minY) || (target_pos[1] > observableSpace.maxY) ||
-        (target_pos[2] < observableSpace.minZ) || (target_pos[2] > observableSpace.maxZ)){
-        printf("Warning: target %f %f %f is outside of observable area.\n",target_pos[0],target_pos[1],target_pos[2]);
+        (target_pos[2] < observableSpace.minZ) || (target_pos[2] > observableSpace.maxZ))
+        {
+        if(verbose){printf("Warning: target %f %f %f is outside of observable area.\n",target_pos[0],target_pos[1],target_pos[2]);}
         return false;          
     }
     else{
@@ -449,7 +450,8 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
         split(worldCoords-origin, channels);                    // split image into its channels X Y Z
         Bottle cmdSFM, responseSFM;
         for(int y = blobBox.y; y < blobBox.y + blobBox.height; y++) {
-            for(int x = blobBox.x; x < blobBox.x + blobBox.width; x++) {
+			for(int y = blobBox.y; y < blobBox.y + 10; y++) {
+            for(int x = blobBox.x; x < blobBox.x + 10; x++) {
                     
                     // Query the SFM module and to get the 3D coords of the point 
                     cmdSFM.clear();
@@ -458,8 +460,9 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
                     cmdSFM.addInt(x);
                     cmdSFM.addInt(y);
                     sfmOutPort.write(cmdSFM, responseSFM);          // XXX Check why this command blocks execution
+                    Time::delay(0.1);
                     //printf("Got response: %s\n", responseSFM.toString().c_str());                    
-
+					if(verbose)	{cout << ".";}
                     // Read the 3D coords and compute the distance to the set reference frame origin
                     if (responseSFM.size() == 3){            
                         channels[0].at<float>(y,x) = responseSFM.get(0).asDouble(); // Get the X coordinate 
