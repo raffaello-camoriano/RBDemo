@@ -360,7 +360,7 @@ public:
         optionL.put("grasp_model_file",rf.findFile("grasp_model_left_file").c_str());
         optionL.put("hand_sequences_file",rf.findFile("hand_sequences_file").c_str());  
 
-        printf("-- Option Left: %s\n", optionL.toString());
+        printf("-- Option Left: %s\n", optionL.toString().c_str());
         //cout << "" << optionL.toString() << endl;
         
         Property optionR(bGeneral.toString().c_str());    // Right
@@ -371,7 +371,7 @@ public:
         optionR.put("grasp_model_file",rf.findFile("grasp_model_right_file").c_str());
         optionR.put("hand_sequences_file",rf.findFile("hand_sequences_file").c_str());    
 
-        printf("-- Option Right: %s\n", optionR.toString());
+        printf("-- Option Right: %s\n", optionR.toString().c_str());
         //cout << "-- Option Right: " << optionR.toString() << endl;
 
         printf("***** Instantiating primitives for left hand\n");
