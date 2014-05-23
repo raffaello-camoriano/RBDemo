@@ -449,28 +449,28 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
         vector<Mat> channels(3);	
         split(worldCoords-origin, channels);                    // split image into its channels X Y Z
         Bottle cmdSFM, responseSFM;
-        for(int y = blobBox.y; y < blobBox.y + blobBox.height; y++) {
-			for(int y = blobBox.y; y < blobBox.y + 10; y++) {
+        //for(int y = blobBox.y; y < blobBox.y + blobBox.height; y++) {
+		for(int y = blobBox.y; y < blobBox.y + 10; y++) {
             for(int x = blobBox.x; x < blobBox.x + 10; x++) {
                     
-                    // Query the SFM module and to get the 3D coords of the point 
-                    cmdSFM.clear();
-                    responseSFM.clear();
-                    cmdSFM.addString("Point");
-                    cmdSFM.addInt(x);
-                    cmdSFM.addInt(y);
-                    sfmOutPort.write(cmdSFM, responseSFM);          // XXX Check why this command blocks execution
-                    Time::delay(0.1);
-                    //printf("Got response: %s\n", responseSFM.toString().c_str());                    
-					if(verbose)	{cout << ".";}
-                    // Read the 3D coords and compute the distance to the set reference frame origin
-                    if (responseSFM.size() == 3){            
-                        channels[0].at<float>(y,x) = responseSFM.get(0).asDouble(); // Get the X coordinate 
-                        channels[1].at<float>(y,x) = responseSFM.get(1).asDouble(); // Get the Y coordinate 
-                        channels[2].at<float>(y,x) = responseSFM.get(2).asDouble(); // Get the Z coordinate 
-                    }                       
-                }      
-            }
+                // Query the SFM module and to get the 3D coords of the point 
+                cmdSFM.clear();
+                responseSFM.clear();
+                cmdSFM.addString("Point");
+                cmdSFM.addInt(x);
+                cmdSFM.addInt(y);
+                sfmOutPort.write(cmdSFM, responseSFM);          // XXX Check why this command blocks execution
+                Time::delay(0.1);
+                //printf("Got response: %s\n", responseSFM.toString().c_str());                    
+				if(verbose)	{cout << ".";}
+                // Read the 3D coords and compute the distance to the set reference frame origin
+                if (responseSFM.size() == 3){            
+                    channels[0].at<float>(y,x) = responseSFM.get(0).asDouble(); // Get the X coordinate 
+                    channels[1].at<float>(y,x) = responseSFM.get(1).asDouble(); // Get the Y coordinate 
+                    channels[2].at<float>(y,x) = responseSFM.get(2).asDouble(); // Get the Z coordinate 
+                }                       
+            }              
+        }
         merge(channels,worldCoords);    // Put coordinates back together in a single matrix for further procesisng
         
         /* Compute euclidean distance of all points matrixwise as sqrt(ch0^2+ch1^2+ch2^2). */        
