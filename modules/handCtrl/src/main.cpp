@@ -206,7 +206,6 @@ public:
 
             // Stop current motion and clear actions queue
             actionL->stopControl();
-            actionL->clearActionsQueue();
 
             actionL->pushAction("open_hand");
             actionL->checkActionsDone(f,true);
@@ -235,7 +234,6 @@ public:
 
             // Stop current motion and clear actions queue
             actionR->stopControl();
-            actionR->clearActionsQueue();
 
             actionR->pushAction("open_hand");
             actionR->checkActionsDone(f,true);
@@ -263,7 +261,6 @@ public:
 
             // Stop current motion and clear actions queue
             actionR->stopControl();
-            actionR->clearActionsQueue();
 
             actionR->pushAction("close_hand");
             actionR->checkActionsDone(f,true);
@@ -291,7 +288,6 @@ public:
 
             // Stop current motion and clear actions queue
             actionL->stopControl();
-            actionL->clearActionsQueue();
 
             actionL->pushAction("close_hand");
             actionL->checkActionsDone(f,true);
@@ -326,8 +322,6 @@ public:
         else if (receivedCmd == "quit")
         {
             reply.addString("Quitting.");
-            actionMutex.unlock(); // Unlock the mutex to avoid deadlocks and allow a smooth stop
-
             return false; //note also this
         }
         else
@@ -468,6 +462,7 @@ public:
     /************************************************************************/
     bool close()
     {
+        // Deallocate actions
         if (actionL!=NULL)
         {
             delete actionL;
@@ -635,13 +630,6 @@ public:
     /************************************************************************/
     bool interruptModule()
     {
-        // since a call to checkActionsDone() blocks
-        // the execution until it's done, we need to 
-        // take control and exit from the waiting state
-
-        actionL->syncCheckInterrupt(true);
-        actionR->syncCheckInterrupt(true);
-
         // Interrupt any blocking reads on the input port
         inPort.interrupt();
         cout << "inPort interrupted" << endl;
@@ -649,6 +637,15 @@ public:
         // Interrupt any blocking reads on the input port        
         rpcPort.interrupt();
         cout << "rpcPort interrupted" << endl;
+
+        actionMutex.unlock(); // Unlock the mutex to avoid deadlocks and allow a smooth stop
+
+        // since a call to checkActionsDone() blocks
+        // the execution until it's done, we need to 
+        // take control and exit from the waiting state
+
+        actionL->syncCheckInterrupt(true);
+        actionR->syncCheckInterrupt(true);
 
         return true;
     }
