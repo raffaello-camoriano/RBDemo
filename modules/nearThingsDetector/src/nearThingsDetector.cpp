@@ -55,6 +55,7 @@ bool NearDetectorModule::interruptModule()
 {
     closing = true;
     rpcInPort.interrupt();
+    detector->interrupt();
     return true;
 }
 
@@ -62,8 +63,7 @@ bool NearDetectorModule::interruptModule()
 bool NearDetectorModule::close()
 {
     rpcInPort.close();
-    fprintf(stdout, "starting the shutdown procedure\n");
-    detector->interrupt();
+    fprintf(stdout, "starting the shutdown procedure\n");   
     detector->close();
     fprintf(stdout, "deleting thread\n");
     delete detector;
@@ -233,6 +233,12 @@ bool NearThingsDetector::open()
     dispInPortName = "/" + moduleName + "/disp:i";
     BufferedPort<ImageOf<PixelBgr>  >::open( dispInPortName.c_str() );
     
+    imLeftInPortName = "/" + moduleName + "/imLeft:i";
+    imagePortInLeft.open(imLeftInPortName);
+    
+    imRightInPortName = "/" + moduleName + "/imRight:i";
+    imagePortInRight.open(imRightInPortName);
+
     // worldInPortName = "/" + moduleName + "/world:i";
     // worldInPort.open(worldInPortName);
     
@@ -244,6 +250,20 @@ bool NearThingsDetector::open()
 
     sfmOutPortName = "/" + moduleName + "/sfm:o";
     sfmOutPort.open(sfmOutPortName);
+
+    // Open disparity Thread
+    string configFileDisparity = moduleRF->check("ConfigDisparity",Value("icubEyes.ini")).asString().c_str();
+    string cameraContext = moduleRF->check("CameraContext",Value("cameraCalibration")).asString().c_str();
+    string name = moduleRF->check("name",Value("blobCoordsExtractor")).asString().c_str();
+
+    ResourceFinder cameraFinder;
+    cameraFinder.setDefaultContext(cameraContext.c_str());
+    cameraFinder.setDefaultConfigFile(configFileDisparity.c_str());
+    cameraFinder.setVerbose();
+    cameraFinder.configure(0,NULL);
+
+    dispThr = new DisparityThread(name,cameraFinder, false, false, true); 
+    dispThr->start();
     
     return ret;
 }
@@ -258,6 +278,9 @@ void NearThingsDetector::close()
     imageOutPort.close();
     targetOutPort.close();
     BufferedPort<ImageOf<PixelBgr>  >::close();
+
+    dispThr->stop();
+    delete dispThr;
     
     fprintf(stdout,"finished closing input and output ports...\n");
 }
@@ -349,6 +372,7 @@ bool NearThingsDetector::observableTarget(const Scalar target_pos){
     }
 }
 
+
 /**********************************************************/
 void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
 {
@@ -363,45 +387,34 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
     Scalar red = Scalar(0,0,255);
     Scalar white = Scalar(255,255,255);
 
-
 	/* Format disparty data to Mat grayscale */
     Mat disp((IplImage*) disparity.getIplImage());			
     cvtColor(disp, disp, CV_BGR2GRAY);						// Brg to grayscale
-	
-    /* Read 3D coords world image */
-    /*
-    ImageOf<PixelRgbFloat> *world  = worldInPort.read();	// read stereo world data
-    if(world == NULL)
-        return;
-    Mat worldBox((IplImage*) world->getIplImage());			// Reformat to Mat
-    cout << " World info received of size  ["<< worldBox.size().width << "x" << worldBox.size().height  << "]"<< endl;
-    Mat worldCoords(disp.size(), CV_32FC3, Scalar(0,0,0));  // Prepare canvas of whole image size
-    worldBox.copyTo(worldCoords(blobBox));                  // Copy the available world data in its position    
-    */
+
+    /* Read camera Images to feed disp Thread */
+    ImageOf<PixelRgb> *imInLeft = imagePortInLeft.read();  // read an image
+    Mat leftIm((IplImage*) imInLeft->getIplImage());	
+    ImageOf<PixelRgb> *imInRight = imagePortInRight.read();  // read an image
+    Mat rightIm((IplImage*) imInRight->getIplImage());
+    dispThr->setImages(leftIm,rightIm);
+    while(!dispThr->checkDone()){
+        yarp::os::Time::delay(0.1);}
 
     /* Prepare output image for visualization */
     ImageOf<PixelBgr> &imageOut  = imageOutPort.prepare();
     imageOut = disparity;	
     Mat imOut((IplImage*)imageOut.getIplImage(),false);
-
     
     /* Prepare output target port */
     Bottle &target = targetOutPort.prepare();
     target.clear();
-    /* Prepare output blob bounding box port */
-    //Bottle &blobBB = sfmOutPort.prepare();
-    //blobBB.clear();
-
 
     /* Filter disparity image to reduce noise */
     //GaussianBlur(disp, disp, Size(gaussSize,gaussSize), 1.5, 1.5);
     Mat threshIm;
     threshold(disp, threshIm, backgroundThresh, 1, CV_THRESH_BINARY);			// First
     multiply(disp, threshIm, disp);	
-    //erode(disp,disp,Mat());
-    //dilate(disp,disp, Mat());
-    cvtColor(disp, imOut, CV_GRAY2BGR);						// Grayscale to BGR
-    
+    cvtColor(disp, imOut, CV_GRAY2BGR);						// Grayscale to BGR    
     
     /* Find closest valid blob */
     double minVal, maxVal; 
@@ -443,32 +456,21 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
             {cout << " blob Box is  ["<< blobBox.tl().x << "," << blobBox.tl().y << "]:["<<blobBox.br().x << ","<<blobBox.br().y << "]"<< endl;}
         rectangle(imOut, blobBox, blue, 2 );
 
-
-        /* Query SFM for the 3D coords of the point in the blob, gilter the non-valid and get the average */
+        /* Query stereoVision Library for the 3D coords of the point in the blob, filter the non-valid and get the average */
         Mat worldCoords(disp.size(), CV_32FC3, Scalar(0,0,0));  // Prepare canvas of whole image size
         vector<Mat> channels(3);	
         split(worldCoords-origin, channels);                    // split image into its channels X Y Z
         Bottle cmdSFM, responseSFM;
-        //for(int y = blobBox.y; y < blobBox.y + blobBox.height; y++) {
-		for(int y = blobBox.y; y < blobBox.y + 10; y++) {
-            for(int x = blobBox.x; x < blobBox.x + 10; x++) {
-                    
-                // Query the SFM module and to get the 3D coords of the point 
-                cmdSFM.clear();
-                responseSFM.clear();
-                cmdSFM.addString("Point");
-                cmdSFM.addInt(x);
-                cmdSFM.addInt(y);
-                sfmOutPort.write(cmdSFM, responseSFM);          // XXX Check why this command blocks execution
-                Time::delay(0.1);
-                //printf("Got response: %s\n", responseSFM.toString().c_str());                    
-				if(verbose)	{cout << ".";}
-                // Read the 3D coords and compute the distance to the set reference frame origin
-                if (responseSFM.size() == 3){            
-                    channels[0].at<float>(y,x) = responseSFM.get(0).asDouble(); // Get the X coordinate 
-                    channels[1].at<float>(y,x) = responseSFM.get(1).asDouble(); // Get the Y coordinate 
-                    channels[2].at<float>(y,x) = responseSFM.get(2).asDouble(); // Get the Z coordinate 
-                }                       
+        for(int y = blobBox.y; y < blobBox.y + blobBox.height; y++) {
+            for(int x = blobBox.x; x < blobBox.x + blobBox.width; x++) {                    
+                // Query the StereoVision Library and to get the 3D coords of the point 
+                Point2f point2D(x,y);
+                Point3f point3D;
+                dispThr->triangulate(point2D,point3D);  // XXX check if the coords on disparity image match the coord on wherever the library is computing the 3D values from
+                // Read the 3D coords and compute the distance to the set reference frame origin       
+                channels[0].at<float>(y,x) = point3D.x; // Get the X coordinate 
+                channels[1].at<float>(y,x) = point3D.y; // Get the Y coordinate 
+                channels[2].at<float>(y,x) = point3D.z; // Get the Z coordinate                 
             }              
         }
         merge(channels,worldCoords);    // Put coordinates back together in a single matrix for further procesisng

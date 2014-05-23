@@ -8,6 +8,7 @@ SET(PROJECTNAME nearThingsDetector)
 PROJECT(${PROJECTNAME})
 
 find_package(OpenCV)
+find_package(stereoVision)
 
 file(GLOB source src/*.cpp)
 file(GLOB header include/*.h)
@@ -18,10 +19,11 @@ source_group("Header Files" FILES ${header})
 include_directories(${PROJECT_SOURCE_DIR}/include
                     ${YARP_INCLUDE_DIRS}
                     ${OpenCV_INCLUDE_DIRS}
+                    ${stereoVision_INCLUDE_DIRS}
                     )
 
 add_executable(${PROJECTNAME} ${source} ${header})
-target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} ${OpenCV_LIBRARIES})
+target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} ${OpenCV_LIBRARIES} stereoVision)
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
 
 yarp_install(FILES ${PROJECTNAME}.xml DESTINATION ${ICUBCONTRIB_MODULES_INSTALL_DIR})
