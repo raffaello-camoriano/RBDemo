@@ -34,7 +34,7 @@
         </input>
         
         <input>
-            <type></type>
+            <type>rpc</type>
             <port>/handCtrl/rpc:i</port>
             <required>no</required>
             <priority>no</priority>
