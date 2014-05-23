@@ -53,10 +53,12 @@ end
 -- if false is returned, the data will be ignored 
 -- and update() will never be called
 PortMonitor.accept = function(thing)
-    print("selector: PortMonitor.accept()")
-    if (thing:asBottle():toInt() == 1 or thing:asBottle():toInt() == 4) then
+    print(">>>>>>> Port monitor: PortMonitor.accept()")
+    if (thing:asBottle():get(0):asInt() == 1 or thing:asBottle():get(0):asInt() == 4) then
+        print(">>>>>>> Port monitor: Command accepted, valid part")
         return true
     else
+        print(">>>>>>> Port monitor: Command blocked, invalid part")
         return false
     end
 end
