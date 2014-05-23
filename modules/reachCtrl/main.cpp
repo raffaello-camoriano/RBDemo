@@ -1026,7 +1026,9 @@ public:
                     fprintf(stdout,"--- Reach done => wait for grasp\n");
                     state = STATE_WAIT_FOR_GRASP;
                     graspTimer = Time::now();
-                    Bottle& b = outportHandToBeClosed.prepare(); 
+                    Bottle& b = outportHandToBeClosed.prepare();
+                    b.clear();  //DEBUG
+                    cout << "######### Bottle cleared" << endl;
                     if(armSel==LEFTARM){
                         b.addInt(static_cast<int>(SKIN_LEFT_HAND)); 
                     }
