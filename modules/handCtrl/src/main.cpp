@@ -340,7 +340,7 @@ public:
         Bottle &bGeneral=config.findGroup("general");
         if (bGeneral.isNull())
         {
-            cout<<"Error: group general is missing!"<<endl;
+            printf("Error: group general is missing!\n");
 
             return false;
         }
@@ -360,7 +360,8 @@ public:
         optionL.put("grasp_model_file",rf.findFile("grasp_model_left_file").c_str());
         optionL.put("hand_sequences_file",rf.findFile("hand_sequences_file").c_str());  
 
-        cout << "-- Option Left: " << optionL.toString() << endl;
+        printf("-- Option Left: %s\n", optionL.toString());
+        //cout << "" << optionL.toString() << endl;
         
         Property optionR(bGeneral.toString().c_str());    // Right
         optionR.put("local",name.c_str());    //module name
@@ -370,11 +371,12 @@ public:
         optionR.put("grasp_model_file",rf.findFile("grasp_model_right_file").c_str());
         optionR.put("hand_sequences_file",rf.findFile("hand_sequences_file").c_str());    
 
-        cout << "-- Option Right: " << optionR.toString() << endl;
+        printf("-- Option Right: %s\n", optionR.toString());
+        //cout << "-- Option Right: " << optionR.toString() << endl;
 
-        cout<<"***** Instantiating primitives for left hand"<<endl;
+        printf("***** Instantiating primitives for left hand\n");
         actionL = new AFFACTIONPRIMITIVESLAYER(optionL);
-        cout<<"***** Instantiating primitives for right hand"<<endl;
+        printf("***** Instantiating primitives for right hand\n");
         actionR=new AFFACTIONPRIMITIVESLAYER(optionR);
         if (!actionR->isValid() || !actionL->isValid() )
         {
@@ -387,22 +389,24 @@ public:
         
         // Get available hand sequence keys for left hand and print them
         deque<string> qL = actionL->getHandSeqList();
-        cout<<"***** List of available left hand sequence keys:"<<endl;
+        printf("***** List of available left hand sequence keys:\n");
         for (size_t i=0; i<qL.size(); i++)
-            cout<<qL[i]<<endl;
+            printf("%s\n", qL[i].c_str());
+            //cout<<qL[i]<<endl;
             
         // Get available hand sequence keys for right hand and print them
         deque<string> qR = actionR->getHandSeqList();
-        cout<<"***** List of available right hand sequence keys:"<<endl;
+        printf("***** List of available right hand sequence keys:\n");
         for (size_t i=0; i<qR.size(); i++)
-            cout<<qR[i]<<endl;
+            printf("%s\n", qR[i].c_str());
+            //cout<<qR[i]<<endl;
             
         // Open ports
         string fwslash="/";
         inPort.open((fwslash+name+"/handToBeClosed:i").c_str());
-        cout << "inPort opened" << endl;
+        printf("inPort opened\n");
         rpcPort.open((fwslash+name+"/rpc:i").c_str());
-        cout << "rpcPort opened" << endl;
+        printf("rpcPort opened\n");
 
         // Attach rpcPort to the respond() method
         attach(rpcPort);
@@ -413,17 +417,13 @@ public:
         // Left hand
         Model *modelL;
         actionL->getGraspModel(modelL);
-        cout << "DEBUG ################### Got graspModel" << endl;
         if (modelL!=NULL)
         {
-            cout << "DEBUG ################### modelL != NULL" << endl;
-            cout << "modelL->isCalibrated() = " << modelL->isCalibrated() << endl;
             if (!modelL->isCalibrated())
             {
-                cout << "DEBUG ################### modelL is not calibrated" << endl;
+                printf("################### modelL is not calibrated\n");
                 Property prop("(finger all_parallel)");
                 modelL->calibrate(prop);
-                cout << "DEBUG ################### Tried to calibrate..." << endl;
                 string fileName=rf.getHomeContextPath();
                 fileName+="/";
                 fileName+=optionL.find("grasp_model_left_file").asString().c_str();
@@ -442,6 +442,7 @@ public:
         {
             if (!modelR->isCalibrated())
             {
+                printf("################### modelR is not calibrated\n");
                 Property prop("(finger all_parallel)");
                 modelR->calibrate(prop);
 
@@ -477,9 +478,9 @@ public:
         
         // Close ports
         inPort.close();
-        cout << "inPort closed" << endl;
+        printf("inPort closed\n");
         rpcPort.close();
-        cout << "rpcPort closed" << endl;
+        printf("rpcPort closed\n");
 
         return true;
     }
@@ -562,9 +563,9 @@ public:
                 // it's likely that we've just grasped
                 // something, so print it!
                 if (!fl)
-                    cout<<"Left hand obstructed while closing"<<endl;
+                    printf("Left hand obstructed while closing\n");
                 else
-                    cout<<"Left hand fully closed"<<endl;
+                    printf("Left hand fully closed\n");
             
                 // Wait $leftHandTimeOut seconds
                 actionL->pushWaitState(leftHandTimeOut);    
@@ -579,10 +580,9 @@ public:
                 actionMutex.unlock(); //Protected area ending
 
                 if (!fl)
-                    cout<<"Left hand obstructed while opening"<<endl;
+                    printf("Left hand obstructed while opening\n");
                 else
-                    cout<<"Left hand fully opened"<<endl;
-            
+                    printf("Left hand fully opened\n");
             }
             else if ( handSide == iCub::skinDynLib::SKIN_RIGHT_HAND)
             {
@@ -601,9 +601,9 @@ public:
                 // it's likely that we've just grasped
                 // something, so print it!
                 if (!fr)
-                    cout<<"Right hand obstructed while closing"<<endl;
+                    printf("Right hand obstructed while closing\n");
                 else
-                    cout<<"Right hand fully closed"<<endl;
+                    printf("Right hand fully closed\n");
 
                 // Wait $rightHandTimeOut seconds
                 actionR->pushWaitState(rightHandTimeOut);   
@@ -618,9 +618,9 @@ public:
                 actionMutex.unlock(); //Protected area ending
 
                 if (!fr)
-                    cout<<"Right hand obstructed while opening"<<endl;
+                    printf("Right hand obstructed while opening\n");
                 else
-                    cout<<"Right hand fully opened"<<endl;
+                    printf("Right hand fully opened\n");
             }              
         }
 
@@ -632,11 +632,11 @@ public:
     {
         // Interrupt any blocking reads on the input port
         inPort.interrupt();
-        cout << "inPort interrupted" << endl;
+        printf("inPort interrupted\n");
 
         // Interrupt any blocking reads on the input port        
         rpcPort.interrupt();
-        cout << "rpcPort interrupted" << endl;
+        printf("rpcPort interrupted\n");
 
         actionMutex.unlock(); // Unlock the mutex to avoid deadlocks and allow a smooth stop
 
@@ -658,7 +658,7 @@ int main(int argc, char *argv[])
     Network yarp;
     if (!yarp.checkNetwork())
     {
-        cout<<"YARP server not available!"<<endl;
+        printf("YARP server not available!\n");
         return -1;
     }
 
