@@ -10,35 +10,35 @@
     <module>
         <name>contactPosRootConverter</name>
         <parameters></parameters>
-        <node></node>
+        <node>localhost</node>
         <prefix></prefix>
         <geometry>(Pos (x 364) (y 418.9))</geometry>
     </module>
     <module>
         <name>handCtrl</name>
         <parameters></parameters>
-        <node></node>
+        <node>localhost</node>
         <prefix></prefix>
         <geometry>(Pos (x 985) (y 341.9))</geometry>
     </module>
     <module>
         <name>nearThingsDetector</name>
         <parameters></parameters>
-        <node></node>
+        <node>localhost</node>
         <prefix></prefix>
         <geometry>(Pos (x 165) (y 221.9))</geometry>
     </module>
     <module>
         <name>reachCtrl</name>
         <parameters></parameters>
-        <node></node>
+        <node>localhost</node>
         <prefix></prefix>
         <geometry>(Pos (x 600) (y 244.9))</geometry>
     </module>
     <module>
         <name>yarpview</name>
         <parameters></parameters>
-        <node></node>
+        <node>localhost</node>
         <prefix>/RBDemoAPP:yarpview:1</prefix>
         <geometry>(Pos (x 592) (y 114.9))</geometry>
     </module>
