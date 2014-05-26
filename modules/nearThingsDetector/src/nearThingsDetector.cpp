@@ -269,9 +269,7 @@ bool NearThingsDetector::open()
  
     if (!clientGaze.open(option))
             return false;
-
-
-
+    
     dispThr = new DisparityThread(name,cameraFinder, false, false, true); 
     dispThr->start();
     
@@ -512,57 +510,15 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
         Moments mu = moments( contours[blobI], false );		
         center2DCoords = Point2f( mu.m10/mu.m00 , mu.m01/mu.m00 );
         circle( imOut, center2DCoords, 4, red, -1, 8, 0 );
-        std::ostringstream coordsStr; 
-        coordsStr << "X:"<< center3DCoords[0] << "Y:" << center3DCoords[1] << "Z:" << center3DCoords[2];
-        putText(imOut,coordsStr.str(),Point2f(center2DCoords.x-30,center2DCoords.y), FONT_HERSHEY_COMPLEX, 0.6, red,2);
-
-        /* Get and return valid 3D coords of a point in the blob */
-        /*
-        Bottle cmdSFM, responseSFM;
-        Scalar pointCoords;
-        RNG rng;
-        int validVals = 0;
-        double dist3D;
-        int cnt = 0;
-        int step = 1;
-        while (validVals == 0){        
-            // Query the SFM module and to get the 3D coords of the point 
-            cmdSFM.clear();
-            responseSFM.clear();
-            cmdSFM.addString("Point");
-            cmdSFM.addInt(center.x);
-            cmdSFM.addInt(center.y);
-            sfmOutPort.write(cmdSFM, responseSFM); 
-            
-            //printf("Got response: %s\n", responseSFM.toString().c_str());
-                    
-            // Read the 3D coords and compute the distance to the set reference frame origin
-            if (responseSFM.size() == 3){            
-                for (int p=0; p<=2; p++){
-                    pointCoords[p] = responseSFM.get(p).asDouble();            
-                }
-            }
-            validVals = countNonZero(pointCoords);                      // Check if the data is Valid
-            if (validVals == 0){                                        // If the data is not valid, update the query point
-                if (cnt%2==0){                                          // Spiral outwards until a valid point is found
-                    center.x += step;                    
-                    if (center.x<0) {center.x = 0;}
-                    if (center.x>disp.cols) {center.x = disp.cols;}
-                }else{
-                    center.y += step;                    
-                    if (center.y<0) {center.y = 0;}
-                    if (center.y>disp.rows) {center.y = disp.rows;}
-                    int sign = (step > 0) - (step < 0);
-                    step = -1*(step + sign);                    // Square spirar coords follow x(t+1)=-1*(x(t)+sign(x(t))).
-                } 
-                cnt +=1;
-                //printf("Looking for a better point, on coords: %d %d \n", center.x, center.y);
-            }else{                                                      // If the data is valid, compute the distance
-                pointCoords -= origin;                                                                         // subtract the offset            
-                dist3D = sqrt(pointCoords[0]*pointCoords[0]+pointCoords[1]*pointCoords[1]+pointCoords[2]*pointCoords[2]);   // Compute euclidean distance
-            }          
-        }
-       */
+        std::ostringstream coordsStrX; 
+        std::ostringstream coordsStrY;
+        std::ostringstream coordsStrZ;
+        coordsStrX << center3DCoords[0]; coordsStrX.precision(4);
+        coordsStrY << center3DCoords[1]; coordsStrY.precision(4);
+        coordsStrZ << center3DCoords[2]; coordsStrZ.precision(4);
+        std::string coordsStr = "X: " + coordsStrX.str() +", Y:" + coordsStrY.str() + "Z:" + coordsStrZ.str();
+        //coordsStr << "X:"<< center3DCoords[0] << "Y:" << center3DCoords[1] << "Z:" << center3DCoords[2];
+        putText(imOut,coordsStr, Point2f(0,0), FONT_HERSHEY_COMPLEX, 0.6, white,2);
 
         /* Compute the average distance of each detected blob */        
         Mat reachness(disp.size(), CV_8UC3, Scalar(0,0,0));
