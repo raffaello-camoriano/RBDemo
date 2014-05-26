@@ -19,7 +19,7 @@
         <parameters></parameters>
         <node>localhost</node>
         <prefix></prefix>
-        <geometry>(Pos (x 985) (y 341.9))</geometry>
+        <geometry>(Pos (x 987) (y 329.9))</geometry>
     </module>
     <module>
         <name>nearThingsDetector</name>
@@ -46,19 +46,13 @@
         <from external="true">/SFM/disp:o</from>
         <to>/nearThingsDetector/disp:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 126.5) (y 277.5)) ((x 108) (y 277)) ((x 166) (y 277))  )</geometry>
+        <geometry>(Pos ((x 126.5) (y 277.5)) ((x 108) (y 276)) ((x 166) (y 277))  )</geometry>
     </connection>
     <connection>
         <from>/nearThingsDetector/img:o</from>
         <to>/RBDemoAPP:yarpview:1/yarpview/img:i</to>
         <protocol>udp</protocol>
         <geometry>(Pos ((x 485.5) (y 186.5)) ((x 399) (y 240)) ((x 593) (y 133))  )</geometry>
-    </connection>
-    <connection>
-        <from>/nearThingsDetector/sfm:o</from>
-        <to external="true">/SFM/rpc</to>
-        <protocol>udp</protocol>
-        <geometry>(Pos ((x 502) (y 318.5)) ((x 399) (y 290)) ((x 634) (y 346))  )</geometry>
     </connection>
     <connection>
         <from>/nearThingsDetector/target:o</from>
@@ -70,18 +64,30 @@
         <from external="true">/skinManager/skin_events:o</from>
         <to>/contactPosRootConverter/skin_events:i</to>
         <protocol>tcp</protocol>
-        <geometry>(Pos ((x 278.5) (y 460.5)) ((x 213) (y 458)) ((x 365) (y 462))  )</geometry>
+        <geometry>(Pos ((x 278.5) (y 460.5)) ((x 213) (y 457)) ((x 365) (y 462))  )</geometry>
     </connection>
     <connection>
         <from>/contactPosRootConverter/contact_pos:o</from>
         <to>/handCtrl/handToBeClosed:i</to>
         <protocol>tcp+recv.portmonitor+script.lua+context.RBDemo+file.handCtrlMonitor</protocol>
-        <geometry>(Pos ((x 801.5) (y 398.5)) ((x 638) (y 437)) ((x 986) (y 360))  )</geometry>
+        <geometry>(Pos ((x 578.5) (y 392.5)) ((x 638) (y 437)) ((x 988) (y 348))  )</geometry>
     </connection>
     <connection>
         <from>/reachCtrl/handToBeClosed:o</from>
         <to>/handCtrl/handToBeClosed:i</to>
         <protocol>tcp+recv.portmonitor+script.lua+context.RBDemo+file.handCtrlMonitor</protocol>
-        <geometry>(Pos ((x 633) (y 503)) ((x 749) (y 646)) ((x 986) (y 360))  )</geometry>
+        <geometry>(Pos ((x 640.5) (y 305.5)) ((x 762) (y 263)) ((x 988) (y 348))  )</geometry>
+    </connection>
+    <connection>
+        <from>/nearThingsDetector/target:o</from>
+        <to external="true">gazeController</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 562) (y 304)) ((x 399) (y 265)) ((x 746) (y 343))  )</geometry>
+    </connection>
+    <connection>
+        <from>/contactPosRootConverter/contact_pos:o</from>
+        <to external="true">gazeController</to>
+        <protocol>tcp</protocol>
+        <geometry>(Pos ((x 681.5) (y 390)) ((x 638) (y 437)) ((x 746) (y 343))  )</geometry>
     </connection>
 </application>
