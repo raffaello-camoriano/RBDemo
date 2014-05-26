@@ -46,9 +46,17 @@
         <geometry>(Pos ((x 349.00) (y 126.00)) ((x 285.00) (y 181.00)) ((x 434.00) (y 70.00))  )</geometry>
     </connection>
     <connection>
-        <from>/nearThingsDetector/sfm:o</from>
-        <to external="true">/SFM/rpc</to>
-        <protocol>tcp</protocol>
-        <geometry>(Pos ((x 710.50) (y 288.50)) ((x 669.00) (y 247.00)) ((x 773.00) (y 330.00))  )</geometry>
+        <from external="true">/icub/camcalib/right/out</from>
+        <to>/nearThingsDetector/imRight:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 349.50) (y 202.00)) ((x 285.00) (y 181.00)) ((x 435.00) (y 234.00))  )</geometry>
     </connection>
+    <connection>
+        <from external="true">/icub/camcalib/left/out</from>
+        <to>/nearThingsDetector/imLeft:i</to>
+        <protocol>udp</protocol>
+        <geometry>(Pos ((x 349.50) (y 202.00)) ((x 285.00) (y 181.00)) ((x 435.00) (y 234.00))  )</geometry>
+    </connection>
+
+
 </application>

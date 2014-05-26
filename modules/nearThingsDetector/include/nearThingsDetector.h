@@ -41,7 +41,7 @@
 #include <cv.h>
 #include <highgui.h>
 
-#include <icub/stereoVision/disparityThread.h>
+#include <iCub/stereoVision/disparityThread.h>
 
 
 class NearThingsDetector : public yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> >
