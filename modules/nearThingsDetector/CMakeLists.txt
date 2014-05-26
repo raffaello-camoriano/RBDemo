@@ -18,12 +18,13 @@ source_group("Header Files" FILES ${header})
 
 include_directories(${PROJECT_SOURCE_DIR}/include
                     ${YARP_INCLUDE_DIRS}
+                    ${ICUB_INCLUDE_DIRS}
                     ${OpenCV_INCLUDE_DIRS}
                     ${stereoVision_INCLUDE_DIRS}
                     )
 
 add_executable(${PROJECTNAME} ${source} ${header})
-target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} ${OpenCV_LIBRARIES} stereoVision)
+target_link_libraries(${PROJECTNAME} ${YARP_LIBRARIES} ${OpenCV_LIBRARIES} icubmod stereoVision)
 install(TARGETS ${PROJECTNAME} DESTINATION bin)
 
 yarp_install(FILES ${PROJECTNAME}.xml DESTINATION ${ICUBCONTRIB_MODULES_INSTALL_DIR})

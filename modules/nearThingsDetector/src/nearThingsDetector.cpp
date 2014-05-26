@@ -262,6 +262,16 @@ bool NearThingsDetector::open()
     cameraFinder.setVerbose();
     cameraFinder.configure(0,NULL);
 
+    Property option;
+    option.put("device","gazecontrollerclient");
+    option.put("remote","/iKinGazeCtrl");
+    option.put("local","/client/gaze");
+ 
+    if (!clientGaze.open(option))
+            return false;
+
+
+
     dispThr = new DisparityThread(name,cameraFinder, false, false, true); 
     dispThr->start();
     
@@ -278,6 +288,8 @@ void NearThingsDetector::close()
     imageOutPort.close();
     targetOutPort.close();
     BufferedPort<ImageOf<PixelBgr>  >::close();
+
+    clientGaze.close();
 
     dispThr->stop();
     delete dispThr;

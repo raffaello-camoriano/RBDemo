@@ -87,6 +87,8 @@ private:
 
 protected:
     bool observableTarget(const cv::Scalar target_pos);
+    PolyDriver        clientGaze;
+    IGazeControl     *igaze;
 
     struct {
         double minX, maxX;
