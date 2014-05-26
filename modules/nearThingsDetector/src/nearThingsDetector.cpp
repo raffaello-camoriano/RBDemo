@@ -582,5 +582,7 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
     imageOutPort.write();
     targetOutPort.write();
     //sfmOutPort.write();
+
 }
 //empty line to make gcc happy
+
