@@ -1,3 +1,37 @@
+/* 
+ * Copyright (C) 2014 iCub Facility - Istituto Italiano di Tecnologia
+ * Author: Sriram Kumar
+ * email: sriram.kishore@iit.it
+ * website: www.robotcub.org
+ * Permission is granted to copy, distribute, and/or modify this program
+ * under the terms of the GNU General Public License, version 2 or any
+ * later version published by the Free Software Foundation.
+ *
+ * A copy of the license can be found at
+ * http://www.robotcub.org/icub/license/gpl.txt
+ *
+ * This program is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
+ * Public License for more details
+*/
+/*
+An Example program to get image from the icub and classify the foreground from background integrated with opencv.
+
+Copyright (C) 2010 RobotCub Consortium
+ 
+Author: Sriram Kumar 
+
+CopyPolicy: Released under the terms of the GNU GPL v2.0. 
+
+Scenario : 
+To write a simple yarp code that does the following things: 
+
+(1) get images from one/two robot camera; 
+(2) build an internal representation of the scene background (the scene is assumed to be nearly static); 
+(3) stream out an image whose pixels are classified as either background or foreground.
+*/
+
 #include <yarp/os/all.h>
 #include <yarp/os/RFModule.h>
 #include <yarp/os/Network.h>
