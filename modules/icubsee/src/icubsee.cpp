@@ -211,7 +211,7 @@ bool icubsee::interruptModule() {
 }
 
 double icubsee::getPeriod() {
-	return 0.1;
+	return 0.0;
 }
 
 bool icubsee::close() {
@@ -233,7 +233,7 @@ int main(int argc, char * argv[]) {
 	rf.setVerbose(true);
 	rf.setDefaultConfigFile("icubsee_configfile.ini"); //overridden by --from parameter
 	rf.setDefaultContext("icubsee");   //overridden by --context parameter
-	rf.configure("ICUB_ROOT", argc, argv);
+	rf.configure(argc, argv);
 	icubse.runModule(rf);
 
 	return 0;
