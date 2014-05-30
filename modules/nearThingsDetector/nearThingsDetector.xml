@@ -1,15 +1,15 @@
 <module>
     <!-- module's name should match its executable file's name. -->
     <name>nearThingsDetector</name>
-    <description>Uses 3D and disparity information to find the distance of the  closest object</description>
-    <version>1.0</version>
+    <description> Uses Stereo Vision on images from both eyes to find closest object, its distance and position in 3D.</description>
+    <version>2.0</version>
 
     <!-- <arguments> can have multiple <param> tags-->
     <arguments>
     <!--
     <param desc="Name of the module" default="nearThingsDetector"> name</param>
-    <param desc="Sub-path from \c $ICUB_ROOT/app to the configuration file" default="nearThingsDetector/conf"> context </param>
-	<param desc="Configuration file" default="config.ini"> from </param>
+    <param desc="Sub-path from \c $ICUB_ROOT/app to the configuration file" default="app/conf"> context </param>
+	<param desc="Configuration file" default="nearThingsDetector.ini"> from </param>
     -->
     </arguments>
 
@@ -28,13 +28,23 @@
         </input>
         
         <input>
+            <type>ImageOfPixelRgb</type>
+            <port carrier="udp">/nearThingsDetector/imLeft:i</port>
+            <description>Left camera image to feed stereoVision Library</description>
+        </input>
+        
+        <input>
+            <type>ImageOfPixelRgb</type>
+            <port carrier="udp">/nearThingsDetector/imRight:i</port>
+            <description>Right camera image to feed stereoVision Library</description>
+        </input>        
+        <input>
             <type>ImageOfPixelMono</type>
             <port carrier="udp">/nearThingsDetector/disp:i</port>
             <required>no</required>
             <priority>no</priority>
             <description>StereoDisparity disparity image</description>
         </input>
-
         <!--
         <input>
             <type>ImageOfPixelFloat</type>
@@ -44,11 +54,12 @@
             <description>stereo disparity world image</description>
         </input>
         -->
+        
         <!-- output data if available -->
         <output>
             <type>ImageOfPixelBgr</type>
             <port carrier="udp">/nearThingsDetector/img:o</port>
-            <description> Send out the binary image of selected blob</description>
+            <description> Send out the closest blob and coordinates superposed on the disparity image</description>
         </output>
         <output>
             <type>Bottle</type>
@@ -56,9 +67,9 @@
             <description> Coordinates of closest object</description>
         </output>
         <output>
-            <type>rpc</type>
-            <port carrier="tcp">/nearThingsDetector/sfm:o</port>
-            <description> Output commands or data to communicate with SFM</description>
+            <type>ImageOfPixelMono</type>
+            <port carrier="udp">/nearThingsDetector/imgBin:o</port>
+            <description> Send out the binary image of selected blob</description>
         </output>
     </data>
 
@@ -71,6 +82,7 @@
     <development>
         <header></header>
         <library>YARP</library>
+        <library>stereoVision</library>
         <library>OpenCV</library>
     </development>
 

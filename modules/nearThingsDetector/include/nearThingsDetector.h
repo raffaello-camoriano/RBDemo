@@ -21,7 +21,6 @@
 #include <yarp/os/BufferedPort.h>
 #include <yarp/os/RFModule.h>
 #include <yarp/os/Network.h>
-#include <yarp/os/RpcClient.h>
 #include <yarp/os/Thread.h>
 #include <yarp/os/RateThread.h>
 #include <yarp/os/Time.h>
@@ -55,7 +54,7 @@ private:
     std::string imRightInPortName;              // string containing right input image port name
     std::string targetOutPortName;              // string containing output target port name
     std::string imageOutPortName;               // string containing output image port name
-    std::string sfmOutPortName;                 // string containing output rpc port name
+    std::string imgBinOutPortName;               // string containing output image port name
     
     //yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> >	dispInPort;		// Receives disparity greyscale image --- Handled by the clas itself    
     //yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgbFloat> > worldInPort;	// input Port with info of 3D world    
@@ -63,9 +62,9 @@ private:
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >    imagePortInLeft;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelRgb> >    imagePortInRight;
     yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelBgr> >	imageOutPort;	// output image Port with info drawn over
+    yarp::os::BufferedPort<yarp::sig::ImageOf<yarp::sig::PixelMono> >	imgBinOutPort;	// output binary image of closest blob
     yarp::os::BufferedPort<yarp::os::Bottle>							targetOutPort;	// Send coordinates of closest point.      
-    yarp::os::RpcClient                                                 sfmOutPort;		// output rpc port to send queries to SFM
-
+    
     /* Pointer to the Resource Finder */
     yarp::os::ResourceFinder *moduleRF;
     /* Pointer to the Disparity Thread */
@@ -84,6 +83,7 @@ private:
     int gaussSize;
     float range;
     cv::Scalar origin;
+    bool fixedRange;
 
 protected:
     bool observableTarget(const cv::Scalar target_pos);

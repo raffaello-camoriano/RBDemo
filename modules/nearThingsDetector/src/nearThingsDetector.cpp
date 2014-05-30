@@ -116,7 +116,7 @@ bool NearDetectorModule::respond(const Bottle &command, Bottle &reply)
         return true;
 
     }else if (receivedCmd == "thresh"){
-        bool ok = detector->setThresh(command.get(1).asDouble());
+        bool ok = detector->setThresh(command.get(1).asInt());
         if (ok)
             responseCode = Vocab::encode("ack");
         else {
@@ -220,6 +220,7 @@ bool NearThingsDetector::open()
     gaussSize = moduleRF->check("gaussSize", Value(5)).asInt();
     dispThreshRatioLow = moduleRF->check("dispThreshRatioLow", Value(10)).asInt();    
     dispThreshRatioHigh = moduleRF->check("dispThreshRatioHigh", Value(20)).asInt();
+    fixedRange = moduleRF->check("fixedRange", Value(true)).asBool();
 
     // XXX Move to ini file
     observableSpace.minX=-2; observableSpace.maxX=-0.05;
@@ -230,26 +231,31 @@ bool NearThingsDetector::open()
     //create all ports
     fprintf(stdout,"Opening ports\n");
 
-    dispInPortName = "/" + moduleName + "/disp:i";
-    BufferedPort<ImageOf<PixelBgr>  >::open( dispInPortName.c_str() );
+    /* Inputs ports */
     
+    // worldInPortName = "/" + moduleName + "/world:i";
+    // worldInPort.open(worldInPortName);
+
+    dispInPortName = "/" + moduleName + "/disp:i";
+    BufferedPort<ImageOf<PixelBgr>  >::open( dispInPortName.c_str() );    
+
     imLeftInPortName = "/" + moduleName + "/imLeft:i";
     imagePortInLeft.open(imLeftInPortName);
     
     imRightInPortName = "/" + moduleName + "/imRight:i";
     imagePortInRight.open(imRightInPortName);
 
-    // worldInPortName = "/" + moduleName + "/world:i";
-    // worldInPort.open(worldInPortName);
-    
+    /* Output ports */
+
     imageOutPortName = "/" + moduleName + "/img:o";
     imageOutPort.open(imageOutPortName);
+
+    imgBinOutPortName = "/" + moduleName + "/imgBin:o";
+    imgBinOutPort.open(imgBinOutPortName);
     
     targetOutPortName = "/" + moduleName + "/target:o";
     targetOutPort.open(targetOutPortName);
 
-    sfmOutPortName = "/" + moduleName + "/sfm:o";
-    sfmOutPort.open(sfmOutPortName);
 
     // Open disparity Thread
     string configFileDisparity = moduleRF->check("ConfigDisparity",Value("icubEyes.ini")).asString().c_str();
@@ -281,9 +287,9 @@ void NearThingsDetector::close()
 {
     fprintf(stdout,"now closing ports...\n");
     
-    sfmOutPort.close();
     // worldInPort.close();
     imageOutPort.close();
+    imgBinOutPort.close();
     targetOutPort.close();
     BufferedPort<ImageOf<PixelBgr>  >::close();
 
@@ -300,9 +306,10 @@ void NearThingsDetector::interrupt()
 {	
     fprintf(stdout,"cleaning up...\n");
     fprintf(stdout,"attempting to interrupt ports\n");
-    sfmOutPort.interrupt();
+   
     // worldInPort.interrupt();
     imageOutPort.interrupt();
+    imgBinOutPort.interrupt();
     targetOutPort.interrupt();
     BufferedPort<ImageOf<PixelBgr>  >::interrupt();
     fprintf(stdout,"finished interrupt ports\n");
@@ -414,6 +421,11 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
     ImageOf<PixelBgr> &imageOut  = imageOutPort.prepare();
     imageOut = disparity;	
     Mat imOut((IplImage*)imageOut.getIplImage(),false);
+
+    /* Prepare binary image to ouput closesrt blob */
+	ImageOf<PixelMono> &imgBin = imgBinOutPort.prepare();		// prepare an output image
+	imgBin.resize(disparity.width(), disparity.height());		// Initialize features image
+	Mat imgBinMat((IplImage*)imgBin.getIplImage(),false);
     
     /* Prepare output target port */
     Bottle &target = targetOutPort.prepare();
@@ -429,16 +441,19 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
     /* Find closest valid blob */
     double minVal, maxVal; 
     Point minLoc, maxLoc;	
+    int fillRange = FLOODFILL_FIXED_RANGE;
+    if (!fixedRange){
+        fillRange = 4;}
     int fillSize = 0;	
     Mat aux = disp.clone();
     Mat fillMask = Mat::zeros(disp.rows + 2, disp.cols + 2, CV_8U);
     while (fillSize < minBlobSize){			
-        minMaxLoc( aux, &minVal, &maxVal, &minLoc, &maxLoc );		// Look for brighter (closest) blob
-        fillSize = floodFill(aux, maxLoc, 0, 0, Scalar(maxVal/dispThreshRatioLow), Scalar(maxVal/dispThreshRatioHigh),FLOODFILL_FIXED_RANGE);	// If its too small, paint it black and search again
+        minMaxLoc( aux, &minVal, &maxVal, &minLoc, &maxLoc );		// Look for brighter (closest) point
+        fillSize = floodFill(aux, maxLoc, 0, 0, Scalar(maxVal/dispThreshRatioLow), Scalar(maxVal/dispThreshRatioHigh), fillRange);	// If its too small, paint it black and search again
     }
 
-    floodFill(disp, fillMask, maxLoc, 255, 0, Scalar(maxVal/dispThreshRatioLow), Scalar(maxVal/dispThreshRatioHigh), FLOODFILL_MASK_ONLY + FLOODFILL_FIXED_RANGE);	// Paint closest valid blob white
-    threshold(disp, disp, 240, 255, CV_THRESH_BINARY);
+    floodFill(disp, fillMask, maxLoc, 255, 0, Scalar(maxVal/dispThreshRatioLow), Scalar(maxVal/dispThreshRatioHigh), FLOODFILL_MASK_ONLY + fillRange);	// Paint closest valid blob white
+    threshold(disp, disp, 250, 255, CV_THRESH_BINARY);
     
     /* Find Contours */
     Mat edges;	
@@ -458,8 +473,9 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
             }
         }
         /* Mark closest blob for visualization*/        
-        drawContours( imOut, contours, -1, white, 2, 8); 
-        
+        drawContours(imOut, contours, blobI, white, 2, 8); 
+        drawContours(imgBinMat, contours, blobI, white, 2, 8); 
+
         /* check and plt the ROI returned by world*/
         Rect blobBox = boundingRect(contours[blobI]);
         if(verbose)
@@ -499,7 +515,6 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
              
         Scalar center3DCoords = mean(worldCoords, mask);			    // Accpount only for coords where worldCoords data is valid  
 
-
         /* Get a measure of the confidence on the computation of the coordinates as the ratio between the number of valid points and the whole area of the blob*/
         int numValidPoints = countNonZero(mask);
         int numPoints =  contourArea(contours[blobI]);
@@ -517,7 +532,6 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
         coordsStrY << center3DCoords[1]; coordsStrY.precision(4);
         coordsStrZ << center3DCoords[2]; coordsStrZ.precision(4);
         std::string coordsStr = "X: " + coordsStrX.str() +", Y:" + coordsStrY.str() + "Z:" + coordsStrZ.str();
-        //coordsStr << "X:"<< center3DCoords[0] << "Y:" << center3DCoords[1] << "Z:" << center3DCoords[2];
         putText(imOut,coordsStr, Point2f(0,0), FONT_HERSHEY_COMPLEX, 0.6, white,2);
 
         /* Compute the average distance of each detected blob */        
@@ -548,8 +562,8 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
     /* write info on output ports */
     imageOutPort.setEnvelope(ts);
     imageOutPort.write();
+    imgBinOutPort.write();
     targetOutPort.write();
-    //sfmOutPort.write();
 
 }
 //empty line to make gcc happy

@@ -7,4 +7,5 @@ add_subdirectory(contactPosRootConverter)
 add_subdirectory(handCtrl)
 add_subdirectory(nearThingsDetector)
 add_subdirectory(reachCtrl)
+add_subdirectory(removeHands)
 
