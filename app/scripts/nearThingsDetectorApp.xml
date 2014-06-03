@@ -25,38 +25,36 @@
         <from>/nearThingsDetector/img:o</from>
         <to>/imOut/yarpview/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 718.00) (y 183.00)) ((x 669.00) (y 197.00)) ((x 788.00) (y 169.00))  )</geometry>
+        <geometry>(Pos ((x 718.00) (y 189.00)) ((x 669.00) (y 209.00)) ((x 788.00) (y 169.00))  )</geometry>
     </connection>
     <connection>
         <from>/nearThingsDetector/target:o</from>
         <to external="true">/searchforiKinPort</to>
         <protocol>tcp</protocol>
-        <geometry>(Pos ((x 748.00) (y 229.00)) ((x 669.00) (y 222.00)) ((x 848.00) (y 236.00))  )</geometry>
+        <geometry>(Pos ((x 752.00) (y 234.50)) ((x 669.00) (y 234.00)) ((x 856.00) (y 235.00))  )</geometry>
     </connection>
     <connection>
         <from external="true">/SFM/disp:o</from>
         <to>/nearThingsDetector/disp:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 349.50) (y 202.00)) ((x 285.00) (y 181.00)) ((x 435.00) (y 234.00))  )</geometry>
+        <geometry>(Pos ((x 323.00) (y 192.50)) ((x 232.00) (y 113.00)) ((x 435.00) (y 272.00))  )</geometry>
     </connection>
     <connection>
         <from external="true">/SFM/disp:o</from>
         <to>/disp/yarpview/img:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 349.00) (y 126.00)) ((x 285.00) (y 181.00)) ((x 434.00) (y 70.00))  )</geometry>
+        <geometry>(Pos ((x 322.50) (y 91.50)) ((x 232.00) (y 113.00)) ((x 434.00) (y 70.00))  )</geometry>
     </connection>
     <connection>
         <from external="true">/icub/camcalib/right/out</from>
         <to>/nearThingsDetector/imRight:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 349.50) (y 202.00)) ((x 285.00) (y 181.00)) ((x 435.00) (y 234.00))  )</geometry>
+        <geometry>(Pos ((x 332.50) (y 256.50)) ((x 251.00) (y 266.00)) ((x 435.00) (y 247.00))  )</geometry>
     </connection>
     <connection>
         <from external="true">/icub/camcalib/left/out</from>
         <to>/nearThingsDetector/imLeft:i</to>
         <protocol>udp</protocol>
-        <geometry>(Pos ((x 349.50) (y 202.00)) ((x 285.00) (y 181.00)) ((x 435.00) (y 234.00))  )</geometry>
+        <geometry>(Pos ((x 329.50) (y 216.50)) ((x 245.00) (y 211.00)) ((x 435.00) (y 222.00))  )</geometry>
     </connection>
-
-
 </application>
