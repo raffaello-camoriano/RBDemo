@@ -525,9 +525,9 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
         std::ostringstream coordsStrX; 
         std::ostringstream coordsStrY;
         std::ostringstream coordsStrZ;
-        coordsStrX << center3DCoords[0]; coordsStrX.precision(4);
-        coordsStrY << center3DCoords[1]; coordsStrY.precision(4);
-        coordsStrZ << center3DCoords[2]; coordsStrZ.precision(4);
+        coordsStrX << std::setprecision(4) << center3DCoords[0];
+        coordsStrY << std::setprecision(4) << center3DCoords[1]; 
+        coordsStrZ << std::setprecision(4) << center3DCoords[2]; 
         std::string coordsStr = "X: " + coordsStrX.str() +", Y:" + coordsStrY.str() + "Z:" + coordsStrZ.str();
         putText(imOut,coordsStr, Point2f(0,0), FONT_HERSHEY_COMPLEX, 0.6, white,2);
 
