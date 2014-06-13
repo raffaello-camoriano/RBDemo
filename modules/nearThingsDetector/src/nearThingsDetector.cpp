@@ -137,7 +137,6 @@ bool NearDetectorModule::respond(const Bottle &command, Bottle &reply)
         reply.addVocab(responseCode);
         return true;
 
-
     }else if (receivedCmd == "verbose"){
         bool ok = detector->setVerbose(command.get(1).asString());
         if (ok)
@@ -169,11 +168,9 @@ bool NearDetectorModule::respond(const Bottle &command, Bottle &reply)
         closing = true;
         return true;
     }
-
-    fprintf(stdout,"Code not accepted. \n");
-    responseCode = Vocab::encode("nack");
-    reply.addVocab(responseCode);
-
+    
+    reply.addString("Invalid command, type [help] for a list of accepted commands.");
+    
     return true;
 }
 

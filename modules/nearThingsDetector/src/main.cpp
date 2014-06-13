@@ -116,7 +116,7 @@ int main(int argc, char * argv[])
     /* prepare and configure the resource finder */
     ResourceFinder rf;
     rf.setVerbose( true );
-    rf.setDefaultContext( "RBDemo" );
+    rf.setDefaultContext( "RBDemo/conf" );
     rf.setDefaultConfigFile( "nearThingsDetector.ini" );
     rf.setDefault("name","nearThingsDetector");
     rf.configure( argc, argv );

@@ -6,11 +6,9 @@
 
     <!-- <arguments> can have multiple <param> tags-->
     <arguments>
-    <!--
-    <param desc="Name of the module" default="nearThingsDetector"> name</param>
-    <param desc="Sub-path from \c $ICUB_ROOT/app to the configuration file" default="app/conf"> context </param>
-	<param desc="Configuration file" default="nearThingsDetector.ini"> from </param>
-    -->
+        <param desc="Name of the module" default="nearThingsDetector"> name</param>
+        <param desc="Sub-path from \c $ICUB_ROOT/app to the configuration file" default="RBDemo/conf"> context </param>
+        <param desc="Configuration file" default="nearThingsDetector.ini"> from </param>        
     </arguments>
 
     <!-- <authors> can have multiple <author> tags. -->
