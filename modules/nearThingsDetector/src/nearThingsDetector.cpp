@@ -284,13 +284,15 @@ void NearThingsDetector::close()
 {
     fprintf(stdout,"now closing ports...\n");
     
-    // worldInPort.close();
+    BufferedPort<ImageOf<PixelBgr>  >::close();
+    imagePortInLeft.close();
+    imagePortInRight.close();
+
     imageOutPort.close();
     imgBinOutPort.close();
     targetOutPort.close();
-    BufferedPort<ImageOf<PixelBgr>  >::close();
 
-    clientGaze.close();
+    clientGaze.close();    
 
     dispThr->stop();
     delete dispThr;
@@ -304,11 +306,14 @@ void NearThingsDetector::interrupt()
     fprintf(stdout,"cleaning up...\n");
     fprintf(stdout,"attempting to interrupt ports\n");
    
-    // worldInPort.interrupt();
+    BufferedPort<ImageOf<PixelBgr>  >::interrupt();
+    imagePortInLeft.close();
+    imagePortInRight.close();
+
     imageOutPort.interrupt();
     imgBinOutPort.interrupt();
     targetOutPort.interrupt();
-    BufferedPort<ImageOf<PixelBgr>  >::interrupt();
+    
     fprintf(stdout,"finished interrupt ports\n");
 }
 
