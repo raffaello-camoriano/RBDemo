@@ -61,6 +61,7 @@ protected:
 	IEncoders *encs;
         Vector encoders;
         Vector command;
+	int times;
 public:
 	icubseeThread(int period):RateThread(period){}
 	
@@ -104,10 +105,7 @@ public:
             tmp[i] = 10.0;
             pos->setRefSpeed(i, tmp[i]);
         }
-
-	}
-void run()
-{
+	
 	while(!encs->getEncoders(encoders.data()))
         {
             Time::delay(0.1);
@@ -130,10 +128,12 @@ void run()
            pos->checkMotionDone(&done);
            Time::delay(0.1);
        }
-   
-       int times=0;
-       while(true)
-       {
+   	times = 0;
+	}
+void run()
+{
+
+       
            times++;
            if (times%2)
            {
@@ -167,7 +167,6 @@ void run()
                        printf("%.1lf %.1lf %.1lf %.1lf\n", encoders[0], encoders[1], encoders[2], encoders[3]);
                    }
                }
-       }
 }
 
 void threadRelease()
