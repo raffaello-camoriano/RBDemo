@@ -1,0 +1,53 @@
+<application>
+<name>icubsee</name>
+        <dependencies>
+                <port>/icubSim/cam/left</port>
+		<port>/icubSim/cam/right</port>
+        </dependencies>
+      
+        <module>
+                <name>icubsee</name>
+                <node>localhost</node>
+                <tag>tracker</tag>
+        </module>
+
+        <module>
+                <name>yarpview</name>
+                <parameters>--name /viewer1 --x 0 --y 0 --out /viewer1/out --RefreshTime 33</parameters>
+                <node>localhost</node>
+                <tag>viewer1</tag>
+        </module>
+
+        <module>
+                <name>yarpview</name>
+                <parameters>--name /viewer2 --x 0 --y 350 --RefreshTime 33</parameters>
+                <node>localhost</node>
+                <tag>viewer2</tag>
+        </module>
+
+
+        <connection>
+                <from>/left:o</from>
+                <to>/viewer1</to>
+                <protocol>udp</protocol>
+        </connection>
+
+        <connection>
+                <from>/icubSim/cam/left</from>
+                <to>/limg:i</to>
+                <protocol>tcp</protocol>
+        </connection>
+
+        <connection>
+                <from>/right:o</from>
+                <to>/viewer2</to>
+                <protocol>udp</protocol>
+        </connection>
+
+        <connection>
+                <from>/icubSim/cam/right</from>
+                <to>/rimg:i</to>
+                <protocol>udp</protocol>
+        </connection>
+
+</application>

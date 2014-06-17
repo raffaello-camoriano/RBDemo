@@ -42,10 +42,140 @@ To write a simple yarp code that does the following things:
 #include <opencv/highgui.h>
 #include <iostream>
 #include <opencv2/opencv.hpp>
+#include <yarp/dev/ControlBoardInterfaces.h>
+ #include <yarp/dev/PolyDriver.h>
+ #include <yarp/os/Time.h>
+ #include <yarp/sig/Vector.h>
+  #include <yarp/os/RateThread.h>
+  #include <yarp/os/Property.h>
 using namespace yarp::os;
 using namespace yarp::sig;
 using namespace std;
 using namespace cv;
+using namespace yarp::dev;
+class icubseeThread: public RateThread
+{
+protected:
+	PolyDriver robotDevice;
+	IPositionControl *pos;
+	IEncoders *encs;
+        Vector encoders;
+        Vector command;
+public:
+	icubseeThread(int period):RateThread(period){}
+	
+	bool threadInit()
+	{
+	Property options;
+	options.put("device", "remote_controlboard");
+	options.put("local", "/test/client");                 //local port names
+	options.put("remote", "/icubSim/right_arm");         //where we connect to
+    	robotDevice.open(options);
+	        if (!robotDevice.isValid()) {
+            printf("Device not available.  Here are the known devices:\n");
+            printf("%s", Drivers::factory().toString().c_str());
+            return 0;
+        }
+	
+
+	        bool ok;
+        ok = robotDevice.view(pos);
+        ok = ok && robotDevice.view(encs);
+    
+        if (!ok) {
+            printf("Problems acquiring interfaces\n");
+            return 0;
+        }
+	
+	int nj=0;
+        pos->getAxes(&nj);
+        Vector tmp;
+        encoders.resize(nj);
+        tmp.resize(nj);
+        command.resize(nj);
+        
+        int i;
+        for (i = 0; i < nj; i++) {
+             tmp[i] = 50.0;
+        }
+        pos->setRefAccelerations(tmp.data());
+    
+        for (i = 0; i < nj; i++) {
+            tmp[i] = 10.0;
+            pos->setRefSpeed(i, tmp[i]);
+        }
+
+	}
+void run()
+{
+	while(!encs->getEncoders(encoders.data()))
+        {
+            Time::delay(0.1);
+            printf(".");
+        }
+        printf("\n;");
+    
+        command=encoders;
+        //now set the shoulder to some value
+       command[0]=-50;
+        command[1]=20;
+        command[2]=-10;
+        command[3]=50;
+        pos->positionMove(command.data());
+       
+       bool done=false;
+   
+       while(!done)
+       {
+           pos->checkMotionDone(&done);
+           Time::delay(0.1);
+       }
+   
+       int times=0;
+       while(true)
+       {
+           times++;
+           if (times%2)
+           {
+                command[0]=-95;
+                command[1]=0;
+                command[2]=-10;
+                command[3]=50;
+           }
+           else
+           {
+                command[0]=-20;
+                command[1]=20;
+                command[2]=-10;
+                command[3]=30;
+           }
+   
+           pos->positionMove(command.data());
+   
+           int count=50;
+           while(count--)
+               {
+                   Time::delay(0.1);
+                   bool ret=encs->getEncoders(encoders.data());
+                   
+                   if (!ret)
+                   {
+                       fprintf(stderr, "Error receiving encoders, check connectivity with the robot\n");
+                   }
+                   else
+                   { 
+                       printf("%.1lf %.1lf %.1lf %.1lf\n", encoders[0], encoders[1], encoders[2], encoders[3]);
+                   }
+               }
+       }
+}
+
+void threadRelease()
+{
+robotDevice.close();
+}
+
+};
 class icubsee: public RFModule {
 	/* module parameters */
 
@@ -58,8 +188,11 @@ class icubsee: public RFModule {
 	string outputPortName_left;
 	string outputPortName_right;
 	string cameraConfigFilename;
-	Port handlerPort_left;
-	Port handlerPort_right;
+	string rpcPortName;
+	Bottle *cmd;
+//	Port handlerPort_left;
+//	Port handlerPort_right;
+	BufferedPort<Bottle> port;
 	int thresholdValue;
 	int i;
 	PixelRgb rgbPixel;
@@ -69,7 +202,7 @@ class icubsee: public RFModule {
 	BufferedPort<ImageOf<PixelRgb> > imageIn_right;
 	BufferedPort<ImageOf<PixelRgb> > imageOut_left;
 	BufferedPort<ImageOf<PixelRgb> > imageOut_right;
-
+	icubseeThread *ict;
 public:
 
 	bool configure(yarp::os::ResourceFinder &rf);
@@ -123,6 +256,21 @@ ImageOf<PixelRgb> icubsee::Mattoyarp(cv::Mat mat,
 }
 
 bool icubsee::updateModule() {
+	cmd = port.read(false);
+	if (cmd != NULL){
+		printf("Got %s\n", cmd->toString().c_str());
+		string command = cmd->toString().c_str();
+		if (command == "Restart"){
+			i = 1;
+		}
+		else if(command == "StartMotor"){
+			ict = new icubseeThread(4000);
+			ict->start();
+		}
+		else if(command == "StopMotor"){
+			ict->stop();
+		}
+	}
 	unsigned char value;
 	if (i == 1) {
 		initial_l = yarptoMat(imageIn_left.read(), true);
@@ -210,6 +358,8 @@ bool icubsee::configure(yarp::os::ResourceFinder &rf) {
 	outputPortName_right = "/";
 	outputPortName_right += rf.check("rightcamera_view", Value("right:o"),
 			"Output image port right (string)").asString();
+	rpcPortName = "/";
+	rpcPortName += rf.check("rpc_port", Value("rpc:i"),"RPC command port(string)").asString();
 	if (!imageIn_left.open(inputPortName_left.c_str())) {
 		cout << getName() << ": unable to open port " << inputPortName_left
 				<< endl;
@@ -230,6 +380,11 @@ bool icubsee::configure(yarp::os::ResourceFinder &rf) {
 				<< endl;
 		return false;  // unable to open; let RFModule know so that it won't run
 	}
+	if (!port.open(rpcPortName.c_str())) {
+		cout << getName() << ": unable to open port " << rpcPortName
+				<< endl;
+		return false;  // unable to open; let RFModule know so that it won't run
+	}
 	thresholdValue =
 			rf.check("threshold", Value(0.8), "Key value (int)").asInt();
 	i = 1;
@@ -241,6 +396,7 @@ bool icubsee::interruptModule() {
 	imageOut_left.interrupt();
 	imageIn_right.interrupt();
 	imageOut_right.interrupt();
+	port.interrupt();
 	return true;
 }
 
@@ -253,6 +409,7 @@ bool icubsee::close() {
 	imageOut_left.close();
 	imageIn_right.close();
 	imageOut_right.close();
+	port.close();
 	return true;
 }
 

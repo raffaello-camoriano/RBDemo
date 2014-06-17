@@ -14,8 +14,11 @@ project(${KEYWORD})
 
 # Find YARP.  Point the YARP_DIR environment variable at your build.
 find_package(YARP REQUIRED)
+find_package(ICUB)
 find_package( OpenCV REQUIRED )
 list(APPEND CMAKE_MODULE_PATH ${YARP_MODULE_PATH})
+list(APPEND CMAKE_MODULE_PATH ${ICUB_MODULE_PATH})
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR})
 include(YarpInstallationHelpers)
 
 find_package(ICUBcontrib)
@@ -30,7 +33,7 @@ source_group("Source Files" FILES src/icubsee.cpp)
 
 
 # Inclue any directories needed for YARP
-include_directories(${YARP_INCLUDE_DIRS})
+include_directories(${YARP_INCLUDE_DIRS} ${ICUB_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS})
 
 # Set up our main executable.
 
@@ -40,5 +43,7 @@ install(TARGETS ${PROJECTNAME} DESTINATION bin)
 icubcontrib_add_uninstall_target()
 
 ########## application
-file(GLOB conf_ini ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.ini)
-yarp_install(FILES ${conf_ini} DESTINATION ${ICUBCONTRIB_CONTEXTS_INSTALL_DIR}/${KEYWORD})
+#file(GLOB conf_ini ${CMAKE_CURRENT_SOURCE_DIR}/conf/*.ini)
+#yarp_install(FILES ${KEYWORD}.xml DESTINATION ${ICUBCONTRIB_CONTEXTS_INSTALL_DIR}/${KEYWORD})
+
+add_subdirectory(app)
