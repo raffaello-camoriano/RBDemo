@@ -137,7 +137,6 @@ bool NearDetectorModule::respond(const Bottle &command, Bottle &reply)
         reply.addVocab(responseCode);
         return true;
 
-
     }else if (receivedCmd == "verbose"){
         bool ok = detector->setVerbose(command.get(1).asString());
         if (ok)
@@ -169,11 +168,9 @@ bool NearDetectorModule::respond(const Bottle &command, Bottle &reply)
         closing = true;
         return true;
     }
-
-    fprintf(stdout,"Code not accepted. \n");
-    responseCode = Vocab::encode("nack");
-    reply.addVocab(responseCode);
-
+    
+    reply.addString("Invalid command, type [help] for a list of accepted commands.");
+    
     return true;
 }
 
@@ -287,13 +284,15 @@ void NearThingsDetector::close()
 {
     fprintf(stdout,"now closing ports...\n");
     
-    // worldInPort.close();
+    BufferedPort<ImageOf<PixelBgr>  >::close();
+    imagePortInLeft.close();
+    imagePortInRight.close();
+
     imageOutPort.close();
     imgBinOutPort.close();
     targetOutPort.close();
-    BufferedPort<ImageOf<PixelBgr>  >::close();
 
-    clientGaze.close();
+    clientGaze.close();    
 
     dispThr->stop();
     delete dispThr;
@@ -307,11 +306,14 @@ void NearThingsDetector::interrupt()
     fprintf(stdout,"cleaning up...\n");
     fprintf(stdout,"attempting to interrupt ports\n");
    
-    // worldInPort.interrupt();
+    BufferedPort<ImageOf<PixelBgr>  >::interrupt();
+    imagePortInLeft.close();
+    imagePortInRight.close();
+
     imageOutPort.interrupt();
     imgBinOutPort.interrupt();
     targetOutPort.interrupt();
-    BufferedPort<ImageOf<PixelBgr>  >::interrupt();
+    
     fprintf(stdout,"finished interrupt ports\n");
 }
 
@@ -528,9 +530,9 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
         std::ostringstream coordsStrX; 
         std::ostringstream coordsStrY;
         std::ostringstream coordsStrZ;
-        coordsStrX << center3DCoords[0]; coordsStrX.precision(4);
-        coordsStrY << center3DCoords[1]; coordsStrY.precision(4);
-        coordsStrZ << center3DCoords[2]; coordsStrZ.precision(4);
+        coordsStrX << std::setprecision(4) << center3DCoords[0];
+        coordsStrY << std::setprecision(4) << center3DCoords[1]; 
+        coordsStrZ << std::setprecision(4) << center3DCoords[2]; 
         std::string coordsStr = "X: " + coordsStrX.str() +", Y:" + coordsStrY.str() + "Z:" + coordsStrZ.str();
         putText(imOut,coordsStr, Point2f(0,0), FONT_HERSHEY_COMPLEX, 0.6, white,2);
 
