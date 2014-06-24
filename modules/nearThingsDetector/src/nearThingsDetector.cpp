@@ -455,7 +455,7 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
     }
 
     floodFill(disp, fillMask, maxLoc, 255, 0, Scalar(maxVal/dispThreshRatioLow), Scalar(maxVal/dispThreshRatioHigh), FLOODFILL_MASK_ONLY + fillRange);	// Paint closest valid blob white
-    threshold(disp, disp, 250, 255, CV_THRESH_BINARY);
+    //threshold(disp, disp, 250, 255, CV_THRESH_BINARY);
     
     /* Find Contours */
     Mat edges;	
