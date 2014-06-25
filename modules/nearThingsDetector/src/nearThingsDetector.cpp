@@ -427,6 +427,7 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
     /* Prepare binary image to ouput closesrt blob */
 	ImageOf<PixelMono> &imgBin = imgBinOutPort.prepare();		// prepare an output image
 	imgBin.resize(disparity.width(), disparity.height());		// Initialize features image
+    imgBin.zero();
 	Mat imgBinMat((IplImage*)imgBin.getIplImage(),false);
     
     /* Prepare output target port */
@@ -476,7 +477,7 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
         }
         /* Mark closest blob for visualization*/        
         drawContours(imOut, contours, blobI, white, 2, 8); 
-        drawContours(imgBinMat, contours, blobI, white, 2, 8); 
+        drawContours(imgBinMat, contours, blobI, white, -1, 8); 
 
         /* check and plt the ROI returned by world*/
         Rect blobBox = boundingRect(contours[blobI]);
