@@ -444,23 +444,24 @@ void NearThingsDetector::onRead(ImageOf<PixelBgr> &disparity)
     /* Find closest valid blob */
     double minVal, maxVal; 
     Point minLoc, maxLoc;	
-    int fillRange = FLOODFILL_FIXED_RANGE;
-    if (!fixedRange){
-        fillRange = 4;}
+    int fillFlags = 8; 
+    if (fixedRange){                                           // Set the flags for floodfill
+        fillFlags += FLOODFILL_FIXED_RANGE;}
+
     int fillSize = 0;	
     Mat aux = disp.clone();
     Mat fillMask = Mat::zeros(disp.rows + 2, disp.cols + 2, CV_8U);
     while (fillSize < minBlobSize){			
         minMaxLoc( aux, &minVal, &maxVal, &minLoc, &maxLoc );		// Look for brighter (closest) point
-        fillSize = floodFill(aux, maxLoc, 0, 0, Scalar(maxVal/dispThreshRatioLow), Scalar(maxVal/dispThreshRatioHigh), fillRange);	// If its too small, paint it black and search again
+        fillSize = floodFill(aux, maxLoc, 0, 0, Scalar(maxVal/dispThreshRatioLow), Scalar(maxVal/dispThreshRatioHigh), fillFlags);	// If its too small, paint it black and search again
     }
 
-    floodFill(disp, fillMask, maxLoc, 255, 0, Scalar(maxVal/dispThreshRatioLow), Scalar(maxVal/dispThreshRatioHigh), FLOODFILL_MASK_ONLY + fillRange);	// Paint closest valid blob white
+    floodFill(disp, fillMask, maxLoc, 255, 0, Scalar(maxVal/dispThreshRatioLow), Scalar(maxVal/dispThreshRatioHigh), FLOODFILL_MASK_ONLY + fillFlags);	// Paint closest valid blob white
     //threshold(disp, disp, 250, 255, CV_THRESH_BINARY);
     
     /* Find Contours */
     Mat edges;	
-    vector<vector<Point > > contours, contours_aux;
+    vector<vector<Point > > contours;
     vector<Vec4i> hierarchy;
     //Canny( disp, edges, cannyThresh, cannyThresh*3, 3 );			// Detect edges using canny	
     findContours( fillMask(Range(1,disp.rows),Range(1,disp.cols)), contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
